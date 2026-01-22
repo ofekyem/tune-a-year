@@ -1,0 +1,28 @@
+# .NET (Server)
+[Bb]in/
+[Oo]bj/
+out/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Database & Secrets
+appsettings.Development.json
+*.db
+*.local.settings.json
+
+# Node / React (Client)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+build/
+dist/
+.env
+.env.local
+
+# OS Specific
+.DS_Store
+Thumbs.db
