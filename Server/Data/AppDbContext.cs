@@ -46,7 +46,13 @@ public class AppDbContext : DbContext
         // Configure Timeline to be stored as JSON
         modelBuilder.Entity<Player>()
             .Property(p => p.Timeline)
-            .HasColumnType("jsonb");
+            .HasColumnType("jsonb"); 
+        
+        modelBuilder.Entity<Player>()
+            .HasOne<BaseGameSession>() 
+            .WithMany(s => s.Players)
+            .HasForeignKey(p => p.BaseGameSessionId) 
+            .OnDelete(DeleteBehavior.Cascade);
         
 
     }

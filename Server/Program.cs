@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Services.GameServices;
+using Server.Services.Factories;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args); 
@@ -21,7 +22,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 }); 
 
 // Register App Services
-builder.Services.AddScoped<IGameService, GameService>();
+builder.Services.AddScoped<LocalGameService>();
+builder.Services.AddScoped<OnlineGameService>();
+builder.Services.AddScoped<GameServiceFactory>();
 
 // Add App Controllers 
 builder.Services.AddControllers();
