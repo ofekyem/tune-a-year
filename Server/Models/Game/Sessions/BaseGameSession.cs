@@ -9,7 +9,7 @@ public abstract class BaseGameSession
     public Guid Id { get; set; } = Guid.NewGuid();
     public string RoomCode { get; set; } = string.Empty;
     public SessionStatus Status { get; set; } = SessionStatus.Lobby;
-    public MatchConfiguration Config { get; set; } = new();
+    public MatchConfiguration Config { get; set; } = null!;
     
     public List<Player> Players { get; set; } = new();
     public int CurrentPlayerIndex { get; set; } = 0;

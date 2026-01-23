@@ -12,8 +12,13 @@ public class OnlineGameService : BaseGameService
     public OnlineGameService(AppDbContext context) : base(context) { }
 
     public override async Task<BaseGameSession> CreateGameAsync(MatchConfiguration config)
-    {
-        var session = InitializeSession(config);
+    {   
+        var onlineConfig = (OnlineMatchConfiguration)config;
+        if (string.IsNullOrEmpty(onlineConfig.CreatorName))
+        {
+            throw new Exception("CreatorName is required for online games.");
+        }
+        var session = InitializeSession(onlineConfig);
 
         // logic of unique RoomCode
         string code;
@@ -27,7 +32,20 @@ public class OnlineGameService : BaseGameService
 
         session.RoomCode = code;
 
+        // create the host player
+        var hostPlayer = new OnlinePlayer
+        {
+            Name = onlineConfig.CreatorName,
+            Tokens = 2,
+            Timeline = new List<TimelineCard>(),
+            BaseGameSessionId = session.Id, 
+            IsHost = true, 
+            IsConnected = true
+        };
+
         _context.GameSessions.Add(session);
+        _context.Players.Add(hostPlayer);
+        
         await _context.SaveChangesAsync();
         return session;
     } 
