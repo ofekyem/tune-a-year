@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
-using Server.Models;
-using Server.Services; 
+using Server.Models.Music;
+using Server.Services.SongServices; 
 using Server.Services.Factories;
 
 namespace Server.Controllers;

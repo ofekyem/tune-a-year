@@ -1,6 +1,6 @@
-using Server.Models;
+using Server.Models.Music;
 
-namespace Server.Services;
+namespace Server.Services.SongServices;
 public class SpotifySongService : ISongService
 {
     public async Task<Song?> GetRandomSongAsync(string[]? languages, string[]? excludedIds)

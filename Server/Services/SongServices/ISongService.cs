@@ -1,6 +1,6 @@
-using Server.Models;
+using Server.Models.Music;
 
-namespace Server.Services;
+namespace Server.Services.SongServices;
 
 // interface for the options of song service
 public interface ISongService

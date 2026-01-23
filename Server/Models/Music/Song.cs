@@ -1,4 +1,4 @@
-namespace Server.Models;
+namespace Server.Models.Music;
 
 public class Song
 {
