@@ -15,12 +15,14 @@ public abstract class MatchConfiguration
     public int WinningScore { get; set; } = 10;
 }
 
+
 // class for local match configurations
 public class LocalMatchConfiguration : MatchConfiguration
 {
     // you get all the names of the local players here
     public List<string> LocalPlayerNames { get; set; } = new();
 }
+
 
 // class for online match configurations
 public class OnlineMatchConfiguration : MatchConfiguration
