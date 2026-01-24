@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Server.Data;
@@ -15,9 +16,11 @@ using Server.Models.Music;
 namespace Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260123115756_AddSessionInheritance")]
+    partial class AddSessionInheritance
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,7 +35,7 @@ namespace Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("BaseGameSessionId")
+                    b.Property<Guid?>("BaseGameSessionId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Name")
@@ -187,9 +190,7 @@ namespace Server.Migrations
                 {
                     b.HasOne("Server.Models.Game.Sessions.BaseGameSession", null)
                         .WithMany("Players")
-                        .HasForeignKey("BaseGameSessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("BaseGameSessionId");
                 });
 
             modelBuilder.Entity("Server.Models.Game.Sessions.BaseGameSession", b =>

@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
+using Server.Services.GameServices;
+using Server.Services.Factories;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args); 
 
@@ -7,20 +10,24 @@ var builder = WebApplication.CreateBuilder(args);
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-Action<DbContextOptionsBuilder> configureOptions = options => 
+// Setup Npgsql DataSource with JSON support
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.EnableDynamicJson(); // enable JSON support 
+var dataSource = dataSourceBuilder.Build(); 
+
+// Add services to the container that will use the DataSource
+builder.Services.AddDbContext<AppDbContext>(options => 
 {
-    options.UseNpgsql(connectionString);
-}; 
-builder.Services.AddDbContext<AppDbContext>(configureOptions); 
+    options.UseNpgsql(dataSource);
+}); 
 
+// Register App Services
+builder.Services.AddScoped<LocalGameService>();
+builder.Services.AddScoped<OnlineGameService>();
+builder.Services.AddScoped<GameServiceFactory>();
 
-
+// Add App Controllers 
 builder.Services.AddControllers();
-
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -35,9 +42,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

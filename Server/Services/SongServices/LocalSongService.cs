@@ -1,8 +1,8 @@
 using Server.Data; 
-using Server.Models;
+using Server.Models.Music;
 using Microsoft.EntityFrameworkCore;
 
-namespace Server.Services;
+namespace Server.Services.SongServices;
 
 public class LocalSongService : ISongService
 {
