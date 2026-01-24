@@ -63,6 +63,16 @@ public class GameController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
+    } 
+
+    // start the online game after host request to
+    [HttpPost("{id}/start")]
+    public async Task<ActionResult> StartOnlineGame(Guid id)
+    {
+        // add later authorization to ensure only host can start the game
+        var onlineService = (OnlineGameService)_gameFactory.GetService(GameMode.Online);
+        await onlineService.StartGameAsync(id);
+        return Ok();
     }
 
 }

@@ -3,13 +3,15 @@ using Server.Models.Game;
 using Server.Models.Game.Sessions;
 using Server.Models.Game.Players; 
 using Server.Models.Game.Timeline;
+using Server.Services.SongServices;
+using Server.Services.Factories;
 using Microsoft.EntityFrameworkCore; 
 
 namespace Server.Services.GameServices; 
 
 public class OnlineGameService : BaseGameService
 {
-    public OnlineGameService(AppDbContext context) : base(context) { }
+    public OnlineGameService(AppDbContext context, SongServiceFactory songServiceFactory) : base(context, songServiceFactory) { }
 
     public override async Task<BaseGameSession> CreateGameAsync(MatchConfiguration config)
     {   
@@ -45,7 +47,7 @@ public class OnlineGameService : BaseGameService
 
         _context.GameSessions.Add(session);
         _context.Players.Add(hostPlayer);
-        
+
         await _context.SaveChangesAsync();
         return session;
     } 

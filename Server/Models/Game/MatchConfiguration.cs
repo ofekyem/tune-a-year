@@ -4,12 +4,13 @@ namespace Server.Models.Game;
 
 // setting that will define the mode of the configs for online or local
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
-[JsonDerivedType(typeof(LocalMatchConfiguration), 0)]  // 0 = Local
-[JsonDerivedType(typeof(OnlineMatchConfiguration), 1)] // 1 = Online
+[JsonDerivedType(typeof(LocalMatchConfiguration), "local")]
+[JsonDerivedType(typeof(OnlineMatchConfiguration), "online")]
 public abstract class MatchConfiguration
 {
     public GameMode Mode { get; set; }
     public MusicSource Source { get; set; } 
+    public string? PlaylistUrl { get; set; }
     public List<string> Languages { get; set; } = new();
     public int MaxPlayers { get; set; }
     public int WinningScore { get; set; } = 10;

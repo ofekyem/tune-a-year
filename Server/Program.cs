@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization.Metadata;
 using Server.Data;
+using Server.Services.SongServices;
 using Server.Services.GameServices;
 using Server.Services.Factories;
 using Npgsql;
@@ -22,12 +24,20 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 }); 
 
 // Register App Services
+builder.Services.AddScoped<LocalSongService>();
+builder.Services.AddScoped<SpotifySongService>();
+builder.Services.AddScoped<SongServiceFactory>();
 builder.Services.AddScoped<LocalGameService>();
 builder.Services.AddScoped<OnlineGameService>();
 builder.Services.AddScoped<GameServiceFactory>();
 
 // Add App Controllers 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // this ensures that derived types are properly serialized/deserialized
+        options.JsonSerializerOptions.TypeInfoResolverChain.Add(new DefaultJsonTypeInfoResolver());
+    });
 builder.Services.AddOpenApi();
 
 var app = builder.Build();

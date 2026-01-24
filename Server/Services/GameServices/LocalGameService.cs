@@ -3,12 +3,14 @@ using Server.Models.Game;
 using Server.Models.Game.Sessions;
 using Server.Models.Game.Players;  
 using Server.Models.Game.Timeline;
+using Server.Services.SongServices;
+using Server.Services.Factories;
 using Microsoft.EntityFrameworkCore; 
 
 namespace Server.Services.GameServices;
 public class LocalGameService : BaseGameService
 {
-    public LocalGameService(AppDbContext context) : base(context) { }
+    public LocalGameService(AppDbContext context, SongServiceFactory songServiceFactory) : base(context, songServiceFactory) { }
 
     public override async Task<BaseGameSession> CreateGameAsync(MatchConfiguration config)
     {   
@@ -38,6 +40,8 @@ public class LocalGameService : BaseGameService
         }
         
         await _context.SaveChangesAsync();
-        return session;
+
+        // start the game immediately after creation in offline mode
+        return await StartGameAsync(session.Id);
     }
 }
