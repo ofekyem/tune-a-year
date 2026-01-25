@@ -50,18 +50,22 @@ public class SongsController : ControllerBase
 
     [HttpGet("random")]
     public async Task<ActionResult<Song>> GetRandomSong(
-        [FromQuery] string[]? languages, 
-        [FromQuery] string[]? excludedIds, 
-        [FromQuery] string? playlistId)
+        [FromQuery] int count = 1, // defualt to 1 song
+        [FromQuery] string[]? languages = null, 
+        [FromQuery] string[]? excludedIds = null, 
+        [FromQuery] string? playlistId = null,
+        [FromQuery] int? minYear = null,
+        [FromQuery] int? maxYear = null)
     {
         // get the appropriate song service based on the presence of playlistId
         var selectedService = _serviceFactory.GetService(playlistId);
 
-        var song = await selectedService.GetRandomSongAsync(languages, excludedIds);
+        // fetch random songs using the selected service
+        var songs = await selectedService.GetRandomSongsAsync(count, languages, excludedIds, minYear, maxYear);
 
-        if (song == null) return NotFound("No song found matching the criteria.");
+        if (songs == null || songs.Count == 0) return NotFound("No song found matching the criteria.");
         
-        return Ok(song);
+        return Ok(songs);
     }
 
     

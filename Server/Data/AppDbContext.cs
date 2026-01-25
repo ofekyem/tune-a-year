@@ -21,22 +21,32 @@ public class AppDbContext : DbContext
             .HasIndex(s => s.Language)
             .HasDatabaseName("IX_Songs_Language"); 
 
+        // add an index for room code of online games
+        modelBuilder.Entity<BaseGameSession>()
+        .HasIndex(s => s.RoomCode)
+        .HasDatabaseName("IX_GameSessions_RoomCode");
+
         // Configure MatchConfiguration to be stored as JSON
         modelBuilder.Entity<BaseGameSession>()
         .Property(b => b.Config)
-        .HasColumnType("jsonb"); 
-        
-        // Configure TPH for GameSession inheritance
+        .HasColumnType("jsonb");  
+
+        // Save songs that already played in the session as JSON array
         modelBuilder.Entity<BaseGameSession>()
-            .HasDiscriminator<string>("SessionType")
-            .HasValue<LocalDatabaseSession>("Local")
-            .HasValue<ExternalPlaylistSession>("External"); 
+        .Property(b => b.PlayedSongIds)
+        .HasColumnType("jsonb"); 
 
-        // Configure Session with playlist version to be stored as JSON
-        modelBuilder.Entity<ExternalPlaylistSession>()
-            .Property(s => s.SessionPlaylist)
-            .HasColumnType("jsonb"); 
+        // save the current active song as JSON
+        modelBuilder.Entity<BaseGameSession>()
+        .Property(b => b.CurrentActiveSong)
+        .HasColumnType("jsonb"); 
 
+        // Configure TPH for BaseGameSession inheritance
+        modelBuilder.Entity<BaseGameSession>()
+        .HasDiscriminator<string>("SessionType")
+        .HasValue<LocalDatabaseSession>("Local")
+        .HasValue<ExternalPlaylistSession>("External");
+         
         // Configure TPH for Player inheritance
         modelBuilder.Entity<Player>()
             .HasDiscriminator<string>("PlayerType")
@@ -48,12 +58,11 @@ public class AppDbContext : DbContext
             .Property(p => p.Timeline)
             .HasColumnType("jsonb"); 
         
+        // Relationship between BaseGameSession and Player
         modelBuilder.Entity<Player>()
-            .HasOne<BaseGameSession>() 
-            .WithMany(s => s.Players)
-            .HasForeignKey(p => p.BaseGameSessionId) 
-            .OnDelete(DeleteBehavior.Cascade);
-        
-
+        .HasOne<BaseGameSession>() 
+        .WithMany(s => s.Players)
+        .HasForeignKey(p => p.BaseGameSessionId) 
+        .OnDelete(DeleteBehavior.Cascade);
     }
 } 

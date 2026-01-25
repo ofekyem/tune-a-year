@@ -16,8 +16,8 @@ using Server.Models.Music;
 namespace Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260123115756_AddSessionInheritance")]
-    partial class AddSessionInheritance
+    [Migration("20260124121414_InitialUnifiedSchema")]
+    partial class InitialUnifiedSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -35,7 +35,7 @@ namespace Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("BaseGameSessionId")
+                    b.Property<Guid>("BaseGameSessionId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Name")
@@ -78,15 +78,15 @@ namespace Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("CurrentActiveSongId")
-                        .HasColumnType("uuid");
+                    b.Property<Song>("CurrentActiveSong")
+                        .HasColumnType("jsonb");
 
                     b.Property<int>("CurrentPlayerIndex")
                         .HasColumnType("integer");
 
-                    b.PrimitiveCollection<List<string>>("PlayedSongIds")
+                    b.PrimitiveCollection<string>("PlayedSongIds")
                         .IsRequired()
-                        .HasColumnType("text[]");
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("RoomCode")
                         .IsRequired()
@@ -102,7 +102,8 @@ namespace Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CurrentActiveSongId");
+                    b.HasIndex("RoomCode")
+                        .HasDatabaseName("IX_GameSessions_RoomCode");
 
                     b.ToTable("GameSessions");
 
@@ -172,10 +173,6 @@ namespace Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<List<Song>>("SessionPlaylist")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
-
                     b.HasDiscriminator().HasValue("External");
                 });
 
@@ -190,16 +187,9 @@ namespace Server.Migrations
                 {
                     b.HasOne("Server.Models.Game.Sessions.BaseGameSession", null)
                         .WithMany("Players")
-                        .HasForeignKey("BaseGameSessionId");
-                });
-
-            modelBuilder.Entity("Server.Models.Game.Sessions.BaseGameSession", b =>
-                {
-                    b.HasOne("Server.Models.Music.Song", "CurrentActiveSong")
-                        .WithMany()
-                        .HasForeignKey("CurrentActiveSongId");
-
-                    b.Navigation("CurrentActiveSong");
+                        .HasForeignKey("BaseGameSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Server.Models.Game.Sessions.BaseGameSession", b =>

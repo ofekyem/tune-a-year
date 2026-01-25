@@ -75,15 +75,15 @@ namespace Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("CurrentActiveSongId")
-                        .HasColumnType("uuid");
+                    b.Property<Song>("CurrentActiveSong")
+                        .HasColumnType("jsonb");
 
                     b.Property<int>("CurrentPlayerIndex")
                         .HasColumnType("integer");
 
-                    b.PrimitiveCollection<List<string>>("PlayedSongIds")
+                    b.PrimitiveCollection<string>("PlayedSongIds")
                         .IsRequired()
-                        .HasColumnType("text[]");
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("RoomCode")
                         .IsRequired()
@@ -99,7 +99,8 @@ namespace Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CurrentActiveSongId");
+                    b.HasIndex("RoomCode")
+                        .HasDatabaseName("IX_GameSessions_RoomCode");
 
                     b.ToTable("GameSessions");
 
@@ -169,10 +170,6 @@ namespace Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<List<Song>>("SessionPlaylist")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
-
                     b.HasDiscriminator().HasValue("External");
                 });
 
@@ -190,15 +187,6 @@ namespace Server.Migrations
                         .HasForeignKey("BaseGameSessionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Server.Models.Game.Sessions.BaseGameSession", b =>
-                {
-                    b.HasOne("Server.Models.Music.Song", "CurrentActiveSong")
-                        .WithMany()
-                        .HasForeignKey("CurrentActiveSongId");
-
-                    b.Navigation("CurrentActiveSong");
                 });
 
             modelBuilder.Entity("Server.Models.Game.Sessions.BaseGameSession", b =>

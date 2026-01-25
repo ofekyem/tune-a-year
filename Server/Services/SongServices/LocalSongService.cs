@@ -13,22 +13,31 @@ public class LocalSongService : ISongService
         _context = context;
     }
 
-    public async Task<Song?> GetRandomSongAsync(string[]? languages, string[]? excludedIds)
-    {
+    public async Task<List<Song>> GetRandomSongsAsync(int count, string[]? languages, string[]? excludedIds, int? minYear = null, int? maxYear = null)
+    {   
+        // build the query that will be sent to the database
         IQueryable<Song> query = _context.Songs;
 
+        // if year range is specified, filter by it
+        if (minYear.HasValue) query = query.Where(s => s.ReleaseYear >= minYear.Value);
+        if (maxYear.HasValue) query = query.Where(s => s.ReleaseYear <= maxYear.Value);
+
+        // exclude songs that are not in the specified languages
         if (languages?.Length > 0)
         {   
-            // exclude songs that are not in the specified languages
             query = query.Where(s => languages.Contains(s.Language));
         }
 
+        // exclude songs that already used in the current game
         if (excludedIds?.Length > 0)
         {
-            // exclude songs that already used in the current game
             query = query.Where(s => !excludedIds.Contains(s.Id.ToString()));
         }
 
-        return await query.OrderBy(s => Guid.NewGuid()).FirstOrDefaultAsync();
+        // return a "count" number of random songs from the filtered query
+        return await query
+            .OrderBy(s => EF.Functions.Random())
+            .Take(count)
+            .ToListAsync();
     }
 }
