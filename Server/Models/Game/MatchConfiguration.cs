@@ -1,33 +1,20 @@
-using System.Text.Json.Serialization;
+
 
 namespace Server.Models.Game;
 
-// setting that will define the mode of the configs for online or local
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
-[JsonDerivedType(typeof(LocalMatchConfiguration), "local")]
-[JsonDerivedType(typeof(OnlineMatchConfiguration), "online")]
-public abstract class MatchConfiguration
+public class MatchConfiguration
 {
+    // shared fields
     public GameMode Mode { get; set; }
     public MusicSource Source { get; set; } 
     public string? PlaylistUrl { get; set; }
     public List<string> Languages { get; set; } = new();
     public int MaxPlayers { get; set; }
     public int WinningScore { get; set; } = 10;
-}
 
+    // only for online game (in local this will be null)
+    public string? CreatorName { get; set; }
 
-// class for local match configurations
-public class LocalMatchConfiguration : MatchConfiguration
-{
-    // you get all the names of the local players here
-    public List<string> LocalPlayerNames { get; set; } = new();
-}
-
-
-// class for online match configurations
-public class OnlineMatchConfiguration : MatchConfiguration
-{
-    // you get the room creator name here
-    public string CreatorName { get; set; } = string.Empty;
+    // only for local game (in online this will be null)
+    public List<string>? LocalPlayerNames { get; set; }
 }

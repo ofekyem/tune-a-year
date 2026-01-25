@@ -14,19 +14,19 @@ public class LocalGameService : BaseGameService
 
     public override async Task<BaseGameSession> CreateGameAsync(MatchConfiguration config)
     {   
-        var localConfig = (LocalMatchConfiguration)config; 
+       
 
-        if (localConfig.LocalPlayerNames == null || localConfig.LocalPlayerNames.Count < 2)
+        if (config.LocalPlayerNames == null || config.LocalPlayerNames.Count < 2)
         {
             throw new Exception("At least two local player name is required for local games.");
         }
 
-        var session = InitializeSession(localConfig); 
+        var session = InitializeSession(config); 
 
         _context.GameSessions.Add(session);
 
         // create object for each of the players of the game
-        foreach (var name in localConfig.LocalPlayerNames)
+        foreach (var name in config.LocalPlayerNames)
         {
             var player = new Player // use base Player class
             {
