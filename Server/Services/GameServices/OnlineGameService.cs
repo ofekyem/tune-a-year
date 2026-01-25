@@ -6,12 +6,18 @@ using Server.Models.Game.Timeline;
 using Server.Services.SongServices;
 using Server.Services.Factories;
 using Microsoft.EntityFrameworkCore; 
+using Microsoft.AspNetCore.SignalR;
+using Server.Hubs;
 
 namespace Server.Services.GameServices; 
 
 public class OnlineGameService : BaseGameService
-{
-    public OnlineGameService(AppDbContext context, SongServiceFactory songServiceFactory) : base(context, songServiceFactory) { }
+{   
+    private readonly IHubContext<GameHub> _hubContext;
+    public OnlineGameService(AppDbContext context, SongServiceFactory songServiceFactory, IHubContext<GameHub> hubContext) : base(context, songServiceFactory) 
+    { 
+        _hubContext = hubContext;
+    }
 
     public override async Task<BaseGameSession> CreateGameAsync(MatchConfiguration config)
     {   
@@ -85,9 +91,24 @@ public class OnlineGameService : BaseGameService
         };
 
         _context.Players.Add(player);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(); 
+
+        // notify all clients in the room that a new player has joined
+        await _hubContext.Clients.Group(roomCode.ToUpper())
+            .SendAsync("PlayerJoined", player.Name);
         
         return player;
+    } 
+
+    public override async Task<BaseGameSession> StartGameAsync(Guid sessionId)
+    {
+        var session = await base.StartGameAsync(sessionId);
+        
+        // notify all clients in the room that the game has started and send the updated state (including the first song)
+        await _hubContext.Clients.Group(session.RoomCode!)
+            .SendAsync("GameStarted", session);
+
+        return session;
     }
 
     // private function to generate the room code

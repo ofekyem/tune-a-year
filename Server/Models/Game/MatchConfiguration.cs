@@ -1,7 +1,7 @@
 
-
 namespace Server.Models.Game;
 
+// class for json of game settings we get from client when creating a game
 public class MatchConfiguration
 {
     // shared fields
