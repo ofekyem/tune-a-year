@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Server.Models.Game;
+using Server.Data;
 using Server.Models.Game.Sessions;
 using Server.Models.Game.Players;
 using Server.Services.GameServices;
@@ -12,14 +14,16 @@ namespace Server.Controllers;
 public class GameController : ControllerBase
 {
     private readonly GameServiceFactory _gameFactory;
+    private readonly AppDbContext _context;
 
     // Injecting the game service factory 
-    public GameController(GameServiceFactory gameFactory)
+    public GameController(GameServiceFactory gameFactory, AppDbContext context)
     {
         _gameFactory = gameFactory;
+        _context = context;
     }
 
-    /// Create a new game session (lobby)
+    // Create a new game session (lobby)
     [HttpPost("create")]
     public async Task<ActionResult<BaseGameSession>> CreateGame([FromBody] MatchConfiguration config)
     {
@@ -37,9 +41,9 @@ public class GameController : ControllerBase
             Console.WriteLine(ex.ToString());
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex) // הוספנו את המשתנה ex
+        catch (Exception ex) 
         {
-            // מדפיס את השגיאה המלאה, כולל ה-Stack Trace, לטרמינל של ה-dotnet run
+            // debug error logging
             Console.WriteLine("========= ERROR IN CREATE GAME =========");
             Console.WriteLine(ex.ToString());
             Console.WriteLine("========================================");
@@ -48,7 +52,7 @@ public class GameController : ControllerBase
         }
     } 
 
-    /// Join an existing game session by RoomCode for online service
+    // Join an existing game session by RoomCode for online service
     [HttpPost("join")]
     public async Task<ActionResult<Player>> JoinGame([FromQuery] string roomCode, [FromQuery] string playerName)
     {
@@ -69,10 +73,60 @@ public class GameController : ControllerBase
     [HttpPost("{id}/start")]
     public async Task<ActionResult> StartOnlineGame(Guid id)
     {
-        // add later authorization to ensure only host can start the game
+        // !!!! add later authorization to ensure only host can start the game !!!!
         var onlineService = (OnlineGameService)_gameFactory.GetService(GameMode.Online);
-        await onlineService.StartGameAsync(id);
-        return Ok();
+        var session = await onlineService.StartGameAsync(id);
+        return Ok(session);
+    } 
+
+    // method after player submits a guess
+    [HttpPost("{id}/guess")]
+    public async Task<ActionResult> SubmitGuess(
+        Guid id, 
+        [FromQuery] Guid playerId, 
+        [FromQuery] int targetIndex, 
+        [FromQuery] string? titleGuess, 
+        [FromQuery] string? artistGuess)
+    {
+        try
+        {
+            // get the session to determine which service to use
+            var session = await _context.GameSessions.FindAsync(id);
+            if (session == null) return NotFound(new { message = "Session not found" });
+
+            var gameService = _gameFactory.GetService(session.Config.Mode);
+            var (updatedSession, result) = await gameService.SubmitGuessAsync(id, playerId, targetIndex, titleGuess, artistGuess);
+            
+            // return the result (success/failure message) and the updated session state
+            return Ok(new { session = updatedSession, result });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
+    // The endpoint to clean up the game after it ends
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteGame(Guid id)
+    {
+        try
+        {
+            var session = await _context.GameSessions
+                .Include(s => s.Players)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (session == null) return NotFound();
+
+            // Deleting the session will automatically delete the players thanks to Cascade Delete in the DB
+            _context.GameSessions.Remove(session);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Game session cleaned up successfully." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
+    }
 }

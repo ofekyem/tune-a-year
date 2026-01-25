@@ -1,5 +1,6 @@
 using Server.Data;
 using Server.Models.Game;
+using Server.Models.Game.Players;
 using Server.Models.Game.Sessions;
 using Server.Models.Game.Timeline; 
 using Server.Services.SongServices;
@@ -84,9 +85,9 @@ public abstract class BaseGameService : IGameService
         // for the erf to recognize change in the played song ids list
         session.PlayedSongIds = session.PlayedSongIds.ToList();
 
-        // we get a pool of 10 random songs for the game
+        // we get a first active song for the game
         var pool = await songService.GetRandomSongsAsync(
-            10, 
+            1, 
             session.Config.Languages.ToArray(), 
             session.PlayedSongIds.ToArray(), null, null);
 
@@ -102,5 +103,114 @@ public abstract class BaseGameService : IGameService
         await _context.SaveChangesAsync();
 
         return session;
+    } 
+
+    
+    // method that processes a player's guess submission
+    public virtual async Task<(BaseGameSession session, GuessResult result)> SubmitGuessAsync(
+        Guid sessionId, 
+        Guid playerId, 
+        int targetIndex, 
+        string? titleGuess, 
+        string? artistGuess)
+    {   
+        // get the session including its players from the database
+        var session = await _context.GameSessions
+            .Include(s => s.Players)
+            .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+        if (session == null || session.Status != SessionStatus.InProgress)
+            throw new Exception("Game session not found or not active.");
+
+        var currentPlayer = session.Players[session.CurrentPlayerIndex];
+        if (currentPlayer.Id != playerId)
+            throw new Exception("It's not your turn!");
+
+        // get the actual song to compare guesses
+        var actualSong = session.CurrentActiveSong!;
+        var result = new GuessResult
+        {
+            PlayerId = playerId,
+            CorrectTitle = actualSong.Title,
+            CorrectArtist = actualSong.Artist,
+            CorrectYear = actualSong.ReleaseYear
+        };
+
+        // check if the user's placement of the card is correct
+        result.PlacementCorrect = VerifyPlacement(currentPlayer.Timeline, actualSong.ReleaseYear, targetIndex);
+
+        // if its correct
+        if (result.PlacementCorrect)
+        {
+            // add the card to the player timeline at the specified index
+            currentPlayer.Timeline.Insert(targetIndex, new TimelineCard
+            {
+                SongId = actualSong.Id,
+                Title = actualSong.Title,
+                Artist = actualSong.Artist,
+                ReleaseYear = actualSong.ReleaseYear
+            });
+            currentPlayer.Timeline = currentPlayer.Timeline.ToList(); // update for EF Core
+
+            // check for bonus token (correct title and artist)
+            bool titleMatch = string.Equals(titleGuess?.Trim(), actualSong.Title, StringComparison.OrdinalIgnoreCase);
+            bool artistMatch = string.Equals(artistGuess?.Trim(), actualSong.Artist, StringComparison.OrdinalIgnoreCase);
+
+            if (titleMatch && artistMatch)
+            {
+                currentPlayer.Tokens++;
+                result.BonusEarned = true;
+            }
+        }
+
+        // 3. manage turns and move to the next song
+        session.CurrentPlayerIndex = (session.CurrentPlayerIndex + 1) % session.Players.Count;
+        await PrepareNextActiveSong(session);
+
+        await _context.SaveChangesAsync();
+        return (session, result);
+    }
+
+    // method to prepare the next active song for the session
+    protected async Task PrepareNextActiveSong(BaseGameSession session)
+    {   
+        // check for victory condition before drawing a new song
+        var winner = session.Players.FirstOrDefault(p => p.Timeline.Count >= session.Config!.WinningScore);
+        if (winner != null)
+        {
+            await HandleVictoryAsync(session, winner);
+            return; // stop here - do not draw a new song
+        }
+        var songService = _songServiceFactory.GetService(session.Config.PlaylistUrl);
+        
+        // draw one new song that hasn't appeared yet
+        var nextSongs = await songService.GetRandomSongsAsync(
+            1, 
+            session.Config.Languages.ToArray(), 
+            session.PlayedSongIds.ToArray(), 
+            null, null);
+
+        if (nextSongs.Any())
+        {
+            var nextSong = nextSongs.First();
+            session.CurrentActiveSong = nextSong;
+            session.PlayedSongIds.Add(nextSong.Id.ToString());
+            session.PlayedSongIds = session.PlayedSongIds.ToList();
+        }
+    } 
+
+    protected virtual async Task HandleVictoryAsync(BaseGameSession session, Player winner)
+    {
+        // update session status to Finished
+        session.Status = SessionStatus.Finished;
+        
+        // כאן אפשר להוסיף לוגיקה של שמירת המנצח (אם תוסיף שדה WinnerName ב-Session)
+        // למשל: session.WinnerName = winner.Name;
+
+        await _context.SaveChangesAsync();
+
+        // הערה: את המחיקה הפיזית מהדאטה-בייס (Cleanup) מומלץ לבצע 
+        // רק לאחר שה-API החזיר את התשובה האחרונה למשתמשים.
+        // אפשר לקרוא לזה בסוף ה-SubmitGuess או במתודה נפרדת.
     }
 }

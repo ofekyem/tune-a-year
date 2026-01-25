@@ -117,6 +117,41 @@ public class OnlineGameService : BaseGameService
         const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; 
         return new string(Enumerable.Repeat(chars, 4)
             .Select(s => s[Random.Shared.Next(s.Length)]).ToArray());
+    } 
+
+    public override async Task<(BaseGameSession session, GuessResult result)> SubmitGuessAsync(
+        Guid sessionId, 
+        Guid playerId, 
+        int targetIndex, 
+        string? titleGuess, 
+        string? artistGuess)
+    {
+        // call the base method to process the guess
+        var (session, result) = await base.SubmitGuessAsync(sessionId, playerId, targetIndex, titleGuess, artistGuess);
+
+        // broadcast the results to all clients in the room
+        await _hubContext.Clients.Group(session.RoomCode!)
+            .SendAsync("GuessResultReceived", result);
+
+        // broadcast the updated game state to all clients in the room
+        await _hubContext.Clients.Group(session.RoomCode!)
+            .SendAsync("GameUpdated", session);
+
+        return (session, result);
+    } 
+
+    protected override async Task HandleVictoryAsync(BaseGameSession session, Player winner)
+    {
+        // call the base method to handle victory logic
+        await base.HandleVictoryAsync(session, winner);
+
+        // broadcast the game over event to all clients in the room
+        await _hubContext.Clients.Group(session.RoomCode!)
+            .SendAsync("GameOver", new 
+            { 
+                winnerName = winner.Name, 
+                finalSession = session 
+            });
     }
 
 }
