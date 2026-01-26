@@ -16,7 +16,10 @@ export const gameService = {
 
   // join an existing game room (for online multiplayer)
   joinGame: async (roomCode: string, playerName: string): Promise<BaseGameSession> => {
-    const response = await api.post<BaseGameSession>('/game/join', { roomCode, playerName });
+    // we send room code and player name as query parameters
+    const response = await api.post<BaseGameSession>('/game/join', null, { 
+      params: { roomCode, playerName } 
+    });
     return response.data;
   },
 

@@ -12,6 +12,7 @@ import LanguageSelect from './steps/LanguageSelect';
 import PlayersCount from './steps/PlayersCount'; 
 import MatchConfig from './steps/MatchConfig'; 
 import WaitingRoom from './steps/WaitingRoom';
+import JoinInput from './steps/JoinInput';
 import { gameService } from '../../services/gameService';
 
 type LobbyStep = 'HOME' | 'MODE_SELECT' | 'SOURCE_SELECT' | 'URL_INPUT' | 'LANG_SELECT' | 'PLAYERS_COUNT' | 'CONFIG' | 'WAITING' | 'JOIN_INPUT';
@@ -20,6 +21,7 @@ const Lobby: React.FC = () => {
   const [isDark, setIsDark] = useState(false);
   const [step, setStep] = useState<LobbyStep>('HOME'); 
   const [roomCode, setRoomCode] = useState<string | null>(null);
+  const [isHost, setIsHost] = useState(true);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [config, setConfig] = useState<MatchConfiguration>({
     mode: GameMode.SingleDevice,
@@ -109,7 +111,34 @@ const Lobby: React.FC = () => {
     }
   }; 
 
-  const handleStartOnlineGame = async () => {};
+  // Join game handler
+  const handleJoinGame = async (code: string, name: string) => {
+    try {
+      const session = await gameService.joinGame(code, name);
+      // update state with server response
+      setRoomCode(session.roomCode);
+      setSessionId(session.id);
+      setIsHost(false); 
+      setStep('WAITING');
+    } catch (error) {
+      console.error("Join error:", error);
+      alert("Invalid room code or room is full.");
+    }
+  };
+
+  // Start game handler for online mode
+  const handleStartOnlineGame = async () => {
+    if (!sessionId) return;
+    try {
+      // start game on server
+      await gameService.startGame(sessionId);
+      
+      //navigate(`/game/${sessionId}`); 
+    } catch (error) {
+      console.error("Failed to start game:", error);
+      alert("Failed to start game. Please try again.");
+    }
+  };
 
   return (
     <div className={styles.lobbyContainer}>
@@ -134,7 +163,17 @@ const Lobby: React.FC = () => {
 
         {/* components change by mode */}
         {step === 'HOME' && (
-          <LobbyHome onCreateClick={() => setStep('MODE_SELECT')} />
+          <LobbyHome 
+            onCreateClick={() => {
+              setIsHost(true);
+              setStep('MODE_SELECT');
+            }} 
+            onJoinClick={() => setStep('JOIN_INPUT')} 
+          /> 
+        )} 
+
+        {step === 'JOIN_INPUT' && (
+          <JoinInput onJoin={handleJoinGame} />
         )}
 
         {step === 'MODE_SELECT' && (
@@ -179,8 +218,8 @@ const Lobby: React.FC = () => {
         {step === 'WAITING' && roomCode && (
           <WaitingRoom 
             roomCode={roomCode} 
-            isHost={true} 
-            onStart={handleStartOnlineGame} // פונקציה שתקרא ל-startGame בשרת
+            isHost={isHost}
+            onStart={handleStartOnlineGame} 
           />
         )}
 
