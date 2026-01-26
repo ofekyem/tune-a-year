@@ -1,12 +1,26 @@
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore; 
+using Microsoft.AspNetCore.SignalR;
 using System.Text.Json.Serialization.Metadata;
-using Server.Data;
+using Server.Data; 
+using Server.Hubs;
 using Server.Services.SongServices;
 using Server.Services.GameServices;
 using Server.Services.Factories;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args); 
+
+// Add CORS policy to allow React app access
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000") 
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // allow cookies/auth headers 
+    });
+});
 
 // Configure database connection 
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
@@ -29,7 +43,10 @@ builder.Services.AddScoped<SpotifySongService>();
 builder.Services.AddScoped<SongServiceFactory>();
 builder.Services.AddScoped<LocalGameService>();
 builder.Services.AddScoped<OnlineGameService>();
-builder.Services.AddScoped<GameServiceFactory>();
+builder.Services.AddScoped<GameServiceFactory>(); 
+
+// SignalR Services
+builder.Services.AddSignalR();
 
 // Add App Controllers 
 builder.Services.AddControllers()
@@ -51,8 +68,14 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// Middleware setup
 app.UseHttpsRedirection();
+app.UseCors("AllowReactApp");
 app.UseAuthorization();
-app.MapControllers();
+app.MapControllers(); 
 
+// Map SignalR hubs
+app.MapHub<GameHub>("/gameHub");
+
+// Run Server
 app.Run();

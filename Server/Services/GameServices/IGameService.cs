@@ -7,7 +7,15 @@ namespace Server.Services.GameServices;
 public interface IGameService
 {
     Task<BaseGameSession> CreateGameAsync(MatchConfiguration config);
-    //Task StartGameAsync(Guid sessionId);
-    bool VerifyPlacement(List<TimelineCard> timeline, int newYear, int index);
+    bool VerifyPlacement(List<TimelineCard> timeline, int newYear, int index); 
+
+    Task<BaseGameSession> StartGameAsync(Guid sessionId);
+    
+    Task<(BaseGameSession session, GuessResult result)> SubmitGuessAsync(
+        Guid sessionId, 
+        Guid playerId, 
+        int targetIndex, 
+        string? titleGuess, 
+        string? artistGuess);
     
 }
