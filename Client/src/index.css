@@ -1,0 +1,27 @@
+:root {
+  /* Light Mode Colors*/
+  --bg-main: #80d7f1; 
+  --text-primary: #1e293b;
+  --accent-color: #326cea;
+  --card-bg: #ffffff;
+  --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+[data-theme='dark'] {
+  /* Dark Mode Colors*/
+  --bg-main: #060b1e; 
+  --text-primary: #f8fafc;
+  --accent-color: #f59e0b;
+  --card-bg: #1e293b;
+}
+
+body, button, input, select, textarea {
+  font-family: var(--font-main);
+}
+
+body {
+  background-color: var(--bg-main);
+  /* add a gradient for depth */
+  background-image: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.05) 100%);
+  transition: background-color 0.4s ease;
+}

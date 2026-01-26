@@ -54,14 +54,14 @@ public class GameController : ControllerBase
 
     // Join an existing game session by RoomCode for online service
     [HttpPost("join")]
-    public async Task<ActionResult<Player>> JoinGame([FromQuery] string roomCode, [FromQuery] string playerName)
+    public async Task<ActionResult<BaseGameSession>> JoinGame([FromQuery] string roomCode, [FromQuery] string playerName)
     {
         try
         {
             // here we specifically use the OnlineGameService to join by code
             var onlineService = (OnlineGameService)_gameFactory.GetService(GameMode.Online);
-            var player = await onlineService.JoinByCodeAsync(roomCode, playerName);
-            return Ok(player);
+            var session = await onlineService.JoinByCodeAsync(roomCode, playerName);
+            return Ok(session);
         }
         catch (Exception ex)
         {
