@@ -4,6 +4,7 @@
   --text-primary: #1e293b;
   --accent-color: #326cea;
   --card-bg: #ffffff;
+  --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 [data-theme='dark'] {
@@ -12,6 +13,10 @@
   --text-primary: #f8fafc;
   --accent-color: #f59e0b;
   --card-bg: #1e293b;
+}
+
+body, button, input, select, textarea {
+  font-family: var(--font-main);
 }
 
 body {
