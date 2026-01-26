@@ -1,9 +1,13 @@
 import './App.css'
+import Lobby from './components/Lobby/Lobby';
+import './index.css';
 
 function App() {
 
   return (
-    <h1>tune a year</h1>
+    <div className="App">
+      <Lobby />
+    </div>
   )
 }
 
