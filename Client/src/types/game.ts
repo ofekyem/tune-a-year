@@ -1,4 +1,4 @@
-import type { Player } from './player';
+import type { Player,OnlinePlayer } from './player';
 import type { Song } from './song'; 
 
 // GameMode
@@ -54,13 +54,15 @@ export interface MatchConfiguration {
   localPlayerNames: string[] | null; // optional for local games
 } 
 
+
+export type AnyPlayer = Player | OnlinePlayer;
 // BaseGameSession Type
 export interface BaseGameSession {
   id: string;
   roomCode: string;
   status: SessionStatus;
   config: MatchConfiguration;
-  players: Player[];
+  players: AnyPlayer[];
   currentPlayerIndex: number;
   playedSongIds: string[];
   currentActiveSong: Song | null;

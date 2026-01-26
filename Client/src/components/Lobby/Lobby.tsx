@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from './Lobby.module.css';
 import logoLight from '../../assets/LightNo.png';
 import logoDark from '../../assets/DarkNo.png';
@@ -14,6 +14,7 @@ import MatchConfig from './steps/MatchConfig';
 import WaitingRoom from './steps/WaitingRoom';
 import JoinInput from './steps/JoinInput';
 import { gameService } from '../../services/gameService';
+import {useSignalR} from '../../hooks/useSignalR';
 
 type LobbyStep = 'HOME' | 'MODE_SELECT' | 'SOURCE_SELECT' | 'URL_INPUT' | 'LANG_SELECT' | 'PLAYERS_COUNT' | 'CONFIG' | 'WAITING' | 'JOIN_INPUT';
 
@@ -32,7 +33,34 @@ const Lobby: React.FC = () => {
     winningScore: 10,
     creatorName: null,
     localPlayerNames: null,
-  });
+  }); 
+  // for signalR
+  const [players, setPlayers] = useState<any[]>([]);
+  const { connection } = useSignalR(roomCode); 
+  
+  useEffect(() => {
+    if (!connection) return;
+
+    // listen for player list updates
+    connection.on("PlayerJoined", (newPlayer: any) => {
+      setPlayers(prev => {
+        if (prev.find(p => p.name === newPlayer.name)) return prev;
+        return [...prev, newPlayer];
+      });
+    });
+
+    // listen for game start (for players who are not the host)
+    connection.on("GameStarted", (session) => {
+      console.log("Game is starting!", session);
+      // here you will navigate to the game page once it's ready
+    });
+
+    // Cleanup: remove listeners when component unmounts
+    return () => {
+      connection.off("PlayerJoined");
+      connection.off("GameStarted");
+    };
+  }, [connection]);
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -42,6 +70,7 @@ const Lobby: React.FC = () => {
   // go back button handler
   const goBack = () => {
     if (step === 'MODE_SELECT') setStep('HOME');
+    else if (step === 'JOIN_INPUT') setStep('HOME');
     else if (step === 'SOURCE_SELECT') setStep('MODE_SELECT');
     else if (step === 'URL_INPUT') setStep('SOURCE_SELECT');
     else if (step === 'LANG_SELECT') setStep('SOURCE_SELECT');
@@ -52,10 +81,9 @@ const Lobby: React.FC = () => {
     else if (step === 'CONFIG') setStep('PLAYERS_COUNT');
   }; 
 
-  // helper functions to update Config
+  // handler for music source selection
   const handleSourceSelect = (source: MusicSource) => {
     setConfig(prev => ({ ...prev, source }));
-    // split logic based on your choice
     if (source === MusicSource.SpotifyPlaylist) {
       setStep('URL_INPUT');
     } else {
@@ -86,6 +114,7 @@ const Lobby: React.FC = () => {
     try {
       // create game session on server
       const session = await gameService.createGame(finalConfig);
+     
       
       // update config state with data returned from server (ID and room code)
       setConfig(prev => ({ 
@@ -102,12 +131,15 @@ const Lobby: React.FC = () => {
       } else {
         setRoomCode(session.roomCode);
         setSessionId(session.id);
+        if (finalConfig.creatorName) {
+          setPlayers([{ name: finalConfig.creatorName, joinOrder: 0 }]);
+        }
         // Online mode - move to waiting screen
         setStep('WAITING');
       }
     } catch (error) {
       console.error("Error creating game:", error);
-      // here it is recommended to add a Toast or Alert for the user
+      // here add a Toast or Alert for the user
     }
   }; 
 
@@ -119,6 +151,10 @@ const Lobby: React.FC = () => {
       setRoomCode(session.roomCode);
       setSessionId(session.id);
       setIsHost(false); 
+      
+      // sort the list of players by join order
+      setPlayers(session.players);
+
       setStep('WAITING');
     } catch (error) {
       console.error("Join error:", error);
@@ -133,7 +169,7 @@ const Lobby: React.FC = () => {
       // start game on server
       await gameService.startGame(sessionId);
       
-      //navigate(`/game/${sessionId}`); 
+      // here navigate to the game screen
     } catch (error) {
       console.error("Failed to start game:", error);
       alert("Failed to start game. Please try again.");
@@ -145,14 +181,14 @@ const Lobby: React.FC = () => {
       <header className={styles.header}>
         {step !== 'HOME' && (
           <button className={styles.backBtn} onClick={goBack}>
-            <ArrowLeft size={24} /> Back
+            <ArrowLeft size={30} /> Back
           </button>
         )}
         <div className={styles.headerIcons}>
           <button className={styles.iconBtn} onClick={toggleTheme}>
-            {isDark ? <Sun size={24} /> : <Moon size={24} />}
+            {isDark ? <Sun size={30} /> : <Moon size={30} />}
           </button>
-          <button className={styles.iconBtn}><Settings size={24} /></button>
+          <button className={styles.iconBtn}><Settings size={30} /></button>
         </div>
       </header>
 
@@ -161,7 +197,7 @@ const Lobby: React.FC = () => {
           <img src={isDark ? logoDark : logoLight} alt="logo" className={styles.logo} />
         </div>
 
-        {/* components change by mode */}
+        {/* home step */}
         {step === 'HOME' && (
           <LobbyHome 
             onCreateClick={() => {
@@ -172,10 +208,12 @@ const Lobby: React.FC = () => {
           /> 
         )} 
 
+        {/* Join game step */}
         {step === 'JOIN_INPUT' && (
           <JoinInput onJoin={handleJoinGame} />
         )}
 
+        {/* Game mode selection step */}
         {step === 'MODE_SELECT' && (
           <ModeSelect 
             onSelect={(mode) => {
@@ -189,7 +227,7 @@ const Lobby: React.FC = () => {
         {step === 'SOURCE_SELECT' && (
           <SourceSelect onSelect={handleSourceSelect} />
         )} 
-
+        {/* Playlist URL input step - relevant only for using Spotify Playlist mode */}
         {step === 'URL_INPUT' && (
           <UrlInput onConfirm={handleUrlConfirm} />
         )} 
@@ -215,10 +253,12 @@ const Lobby: React.FC = () => {
           />
         )} 
 
+        {/* Waiting room step for online mode */}
         {step === 'WAITING' && roomCode && (
           <WaitingRoom 
             roomCode={roomCode} 
             isHost={isHost}
+            players={players}
             onStart={handleStartOnlineGame} 
           />
         )}

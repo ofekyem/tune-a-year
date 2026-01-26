@@ -1,6 +1,9 @@
 using Server.Models.Game.Timeline;
+using System.Text.Json.Serialization;
 
-namespace Server.Models.Game.Players;
+namespace Server.Models.Game.Players; 
+[JsonDerivedType(typeof(Player), "Standard")]
+[JsonDerivedType(typeof(OnlinePlayer), "Online")]
 public class Player
 {
     public Guid Id { get; set; } = Guid.NewGuid();

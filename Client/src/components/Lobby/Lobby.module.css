@@ -217,6 +217,16 @@
   width: 100%;
   max-width: 380px;
   margin-bottom: 2rem;
+} 
+
+.infoText {
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-primary);
 }
 
 .langItem {
@@ -321,6 +331,7 @@
   flex-direction: column;
   gap: 0.5rem;
   width: 100%;
+  color: var( --text-primary);
 }
 
 .inputWrapper label {
@@ -421,4 +432,30 @@
   font-style: italic;
   opacity: 0.7;
   font-size: 0.9rem;
+} 
+
+.playersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.playerCard {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hostBadge {
+  font-size: 0.7rem;
+  background: var(--accent-color);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: auto;
 }

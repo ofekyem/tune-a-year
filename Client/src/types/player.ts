@@ -15,4 +15,5 @@ export interface OnlinePlayer extends Player {
   connectionId: string | null; // string? -> string | null
   isHost: boolean;
   isConnected: boolean;
+  joinOrder: number;
 }
