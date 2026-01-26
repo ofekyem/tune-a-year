@@ -14,15 +14,21 @@ appsettings.Development.json
 *.local.settings.json
 
 # Node / React (Client)
+Client/node_modules/
+Client/dist/
+Client/dist-ssr/
+Client/*.local
+Client/.env
+Client/.env.*.local
+
+# OS Specific
+.DS_Store
+Thumbs.db 
+
+# --- General ---
+.DS_Store
+dist/
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-build/
-dist/
-.env
-.env.local
-
-# OS Specific
-.DS_Store
-Thumbs.db
