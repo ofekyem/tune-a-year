@@ -128,5 +128,22 @@ public class GameController : ControllerBase
         {
             return StatusCode(500, new { message = ex.Message });
         }
+    } 
+
+    // Get the current state of a session
+    [HttpGet("{id}")]
+    public async Task<ActionResult<BaseGameSession>> GetSession(Guid id)
+    {
+        var session = await _context.GameSessions
+            .Include(s => s.Players)
+            .FirstOrDefaultAsync(s => s.Id == id);
+
+        if (session == null) return NotFound();
+
+        session.Players = session.Players
+            .OrderBy(p => p.JoinOrder)
+            .ToList();
+
+        return Ok(session);
     }
 }

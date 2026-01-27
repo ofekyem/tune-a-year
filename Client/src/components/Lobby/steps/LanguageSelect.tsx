@@ -25,7 +25,7 @@ const LanguageSelect: React.FC<Props> = ({ onSelect }) => {
 
   return (
     <div className={styles.selectionArea}>
-      <h2 className={styles.stepTitle}>Select Languages</h2>
+      <h2 className={styles.stepTitle}>Select Songs Languages</h2>
       
       <div className={styles.languagesList}>
         {options.map(option => (

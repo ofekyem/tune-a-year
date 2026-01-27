@@ -47,7 +47,8 @@ public class OnlineGameService : BaseGameService
             Timeline = new List<TimelineCard>(),
             BaseGameSessionId = session.Id, 
             IsHost = true, 
-            IsConnected = true
+            IsConnected = true,
+            JoinOrder = 0
         };
 
         _context.GameSessions.Add(session);
@@ -87,26 +88,31 @@ public class OnlineGameService : BaseGameService
             Timeline = new List<TimelineCard>(), // empty timeline to be filled in StartGame
             BaseGameSessionId = sessionData.Id, 
             IsHost = false, 
-            IsConnected = true
+            IsConnected = true,
+            JoinOrder = sessionData.CurrentPlayerCount
         };
 
         _context.Players.Add(player);
         await _context.SaveChangesAsync(); 
 
         var fullSession = await _context.GameSessions
-        .Include(s => s.Players)
-        .FirstOrDefaultAsync(s => s.Id == sessionData.Id);
+            .Include(s => s.Players)
+            .FirstOrDefaultAsync(s => s.Id == sessionData.Id);
+        
+        if (fullSession == null) throw new Exception("Session synchronization failed.");
 
         // notify all clients in the room that a new player has joined
         await _hubContext.Clients.Group(roomCode.ToUpper())
-            .SendAsync("PlayerJoined", player.Name);
+            .SendAsync("PlayerJoined", player);
         
         return fullSession!;
     } 
 
+
     public override async Task<BaseGameSession> StartGameAsync(Guid sessionId)
     {
         var session = await base.StartGameAsync(sessionId);
+
         
         // notify all clients in the room that the game has started and send the updated state (including the first song)
         await _hubContext.Clients.Group(session.RoomCode!)
@@ -132,6 +138,7 @@ public class OnlineGameService : BaseGameService
     {
         // call the base method to process the guess
         var (session, result) = await base.SubmitGuessAsync(sessionId, playerId, targetIndex, titleGuess, artistGuess);
+
 
         // broadcast the results to all clients in the room
         await _hubContext.Clients.Group(session.RoomCode!)

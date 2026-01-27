@@ -9,5 +9,6 @@ public class OnlinePlayer : Player
     public bool IsHost { get; set; } = false;
     
     // Is the player currently connected? (helps to track disconnections)
-    public bool IsConnected { get; set; } = true;
+    public bool IsConnected { get; set; } = true; 
+    
 }

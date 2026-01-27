@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import styles from '../Lobby.module.css';
 import { GameMode, type MatchConfiguration } from '../../../types';
-import { PlayCircle, User } from 'lucide-react';
+import { PlayCircle, User, Loader2} from 'lucide-react';
 
 interface Props {
   config: MatchConfiguration;
   onComplete: (updatedConfig: MatchConfiguration) => void;
+  isLoading: boolean;
 }
 
-const MatchConfig: React.FC<Props> = ({ config, onComplete }) => {
+const MatchConfig: React.FC<Props> = ({ config, onComplete, isLoading }) => {
   // state for local player names in single device mode
   const [localNames, setLocalNames] = useState<string[]>(
     Array(config.maxPlayers).fill('')
@@ -81,11 +82,21 @@ const MatchConfig: React.FC<Props> = ({ config, onComplete }) => {
         )}
 
         <button 
-          className={styles.primaryBtn}
+          className={`${styles.primaryBtn} ${isLoading ? styles.loading : ''}`}
           onClick={handleSubmit}
-          disabled={!isFormValid()}
+          disabled={!isFormValid() || isLoading} // disable if form invalid or loading
         >
-          <PlayCircle size={20} /> Create Room
+          {isLoading ? (
+            <>
+              <Loader2 size={20} className={styles.spinner} />
+              Creating...
+            </>
+          ) : (
+            <>
+              <PlayCircle size={20} />
+              Create Room
+            </>
+          )}
         </button>
       </div>
     </div>
