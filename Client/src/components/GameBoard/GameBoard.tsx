@@ -4,6 +4,7 @@ import type { BaseGameSession } from '../../types';
 import { gameService } from '../../services/gameService';
 import { useSignalR } from '../../hooks/useSignalR';
 import TopBar from './parts/TopBar';
+import GameTable from './parts/GameTable';
 import styles from './GameBoard.module.css';
 
 const GameBoard: React.FC = () => {
@@ -61,7 +62,34 @@ const GameBoard: React.FC = () => {
     return () => {
       connection.off("GameUpdated");
     };
-  }, [connection]);
+  }, [connection]); 
+
+
+  // function for handle guess submit 
+  const handleGuessSubmit = async (targetIndex: number, title: string, artist: string) => {
+    if (!sessionId || !session) return;
+    
+    const activePlayer = session.players[session.currentPlayerIndex];
+    
+    try {
+      // send guess to server
+      const response = await gameService.submitGuess(
+        sessionId,
+        activePlayer.id,
+        targetIndex,
+        title,
+        artist
+      );
+      
+      // update state with the new session returned from the server
+      setSession(response.session);
+      
+      // here we can later trigger animations based on response.result
+      console.log("Guess Result:", response.result);
+    } catch (err) {
+      console.error("Failed to submit guess:", err);
+    }
+  };
 
   // Initial display states
   if (loading) return <div className="loader">loading...</div>;
@@ -75,32 +103,18 @@ const GameBoard: React.FC = () => {
 
   return (
     <div className={styles.gameContainer}>
-      {/* top bar with inactive players */}
       <TopBar 
         players={inactivePlayers} 
         onExit={() => navigate('/')} 
       />
 
       <main className={styles.playArea}>
-        {/* the table where we see the active player*/}
-        <div className={styles.tableCenter}>
-          <div className={styles.turnIndicator}>
-            turn of: <strong>{activePlayer.name}</strong>
-          </div>
-
-          {/* the table component */}
-          <div className={styles.placeholderTable}>
-             [כאן נבנה את ה-GameTable עם ה-Timeline של {activePlayer.name}]
-          </div>
-
-          {/* the active song card */}
-          {session.currentActiveSong && (
-            <div className={styles.activeSongSection}>
-              <p>השיר המתנגן כרגע...</p>
-              {/* כאן תבוא קומפוננטת ה-ActiveSongCard */}
-            </div>
-          )}
-        </div>
+        {/* Table of the active Player*/}
+        <GameTable 
+          activePlayer={activePlayer}
+          currentSong={session.currentActiveSong}
+          onGuessSubmit={handleGuessSubmit}
+        />
       </main>
     </div>
   );
