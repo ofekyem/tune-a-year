@@ -17,9 +17,6 @@ interface Props {
 const WaitingRoom: React.FC<Props> = ({ roomCode, isHost, players, onStart }) => {
   const [copied, setCopied] = React.useState(false);
 
-  const sortedPlayers = [...players].sort((a, b) => a.joinOrder - b.joinOrder);
-  console.log("Sorted players:", sortedPlayers);
-
   const copyToClipboard = () => {
     navigator.clipboard.writeText(roomCode);
     setCopied(true);
@@ -43,7 +40,7 @@ const WaitingRoom: React.FC<Props> = ({ roomCode, isHost, players, onStart }) =>
           <Users size={18} /> Players in Lobby ({players.length})
         </h3>
         <div className={styles.playersGrid}>
-          {sortedPlayers.map((player, index) => (
+          {players.map((player, index) => (
             <div key={player.name} className={styles.playerCard}>
               <UserCheck size={16} className={styles.playerIcon} />
               <span>{player.name}</span>

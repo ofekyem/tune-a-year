@@ -20,6 +20,7 @@ type LobbyStep = 'HOME' | 'MODE_SELECT' | 'SOURCE_SELECT' | 'URL_INPUT' | 'LANG_
 
 const Lobby: React.FC = () => {
   const [isDark, setIsDark] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState<LobbyStep>('HOME'); 
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const [isHost, setIsHost] = useState(true);
@@ -38,6 +39,7 @@ const Lobby: React.FC = () => {
   const [players, setPlayers] = useState<any[]>([]);
   const { connection } = useSignalR(roomCode); 
   
+  // SignalR event handlers
   useEffect(() => {
     if (!connection) return;
 
@@ -45,7 +47,9 @@ const Lobby: React.FC = () => {
     connection.on("PlayerJoined", (newPlayer: any) => {
       setPlayers(prev => {
         if (prev.find(p => p.name === newPlayer.name)) return prev;
-        return [...prev, newPlayer];
+        // add the new player and sort by join order
+        const updatedList = [...prev, newPlayer];
+        return updatedList.sort((a, b) => (a.joinOrder ?? 0) - (b.joinOrder ?? 0));
       });
     });
 
@@ -111,6 +115,8 @@ const Lobby: React.FC = () => {
 
   // Match configuration complete handler
   const handleCreateGame = async (finalConfig: MatchConfiguration) => {
+    // load mode on
+    setIsLoading(true);
     try {
       // create game session on server
       const session = await gameService.createGame(finalConfig);
@@ -141,6 +147,9 @@ const Lobby: React.FC = () => {
       console.error("Error creating game:", error);
       // here add a Toast or Alert for the user
     }
+    finally {
+        setIsLoading(false); // stop loading spinner
+    }
   }; 
 
   // Join game handler
@@ -153,7 +162,10 @@ const Lobby: React.FC = () => {
       setIsHost(false); 
       
       // sort the list of players by join order
-      setPlayers(session.players);
+      const sortedPlayers = [...session.players].sort(
+        (a: any, b: any) => (a.joinOrder ?? 0) - (b.joinOrder ?? 0)
+      );
+      setPlayers(sortedPlayers);
 
       setStep('WAITING');
     } catch (error) {
@@ -249,7 +261,8 @@ const Lobby: React.FC = () => {
         {step === 'CONFIG' && (
           <MatchConfig 
             config={config} 
-            onComplete={handleCreateGame} 
+            onComplete={handleCreateGame}
+            isLoading={isLoading} 
           />
         )} 
 
