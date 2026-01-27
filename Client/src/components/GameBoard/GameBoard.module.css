@@ -149,4 +149,61 @@
 
 .exitBtn:hover {
   background: rgba(255, 71, 71, 0.1);
+} 
+
+/* TimelineCard component styles */
+
+.timelineCard {
+  width: 140px;
+  height: 200px;
+  background: white;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 15px;
+  color: #1a1a2e;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.cardYear {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #f39c12; 
+  text-align: center;
+  margin-top: 20px;
+}
+
+.cardDetails {
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+
+.songTitle {
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.artistName {
+  font-size: 0.75rem;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* animation for popIn */
+.animatePop {
+  animation: popIn 0.5s ease-out forwards;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+  70% { transform: scale(1.1) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
