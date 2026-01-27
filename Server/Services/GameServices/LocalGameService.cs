@@ -26,6 +26,7 @@ public class LocalGameService : BaseGameService
         _context.GameSessions.Add(session);
 
         // create object for each of the players of the game
+        int order = 0;
         foreach (var name in config.LocalPlayerNames)
         {
             var player = new Player // use base Player class
@@ -33,7 +34,8 @@ public class LocalGameService : BaseGameService
                 Name = name,
                 Tokens = 2,
                 Timeline = new List<TimelineCard>(),
-                BaseGameSessionId = session.Id 
+                BaseGameSessionId = session.Id,
+                JoinOrder = order++
             };
 
             _context.Players.Add(player);

@@ -27,5 +27,24 @@ export const gameService = {
   getSession: async (sessionId: string): Promise<BaseGameSession> => {
     const response = await api.get<BaseGameSession>(`/game/${sessionId}`);
     return response.data;
-  }
+  },
+
+
+  // method after player submits a guess
+  submitGuess: async (
+      sessionId: string, 
+      playerId: string, 
+      targetIndex: number, 
+      titleGuess?: string, 
+      artistGuess?: string
+  ): Promise<{ session: BaseGameSession, result: any }> => {
+      const response = await api.post<{ session: BaseGameSession, result: any }>(
+        `/game/${sessionId}/guess`, 
+        null, // no body needed
+        { 
+          params: { playerId, targetIndex, titleGuess, artistGuess } 
+        }
+      );
+      return response.data;
+    },
 };

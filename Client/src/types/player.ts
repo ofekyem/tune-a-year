@@ -8,6 +8,7 @@ export interface Player {
   timeline: TimelineCard[]; // List -> Array
   hasWon: boolean; 
   baseGameSessionId: string;
+  joinOrder: number;
 } 
 
 // Online Player Type (extending Standard Player)
@@ -15,5 +16,4 @@ export interface OnlinePlayer extends Player {
   connectionId: string | null; // string? -> string | null
   isHost: boolean;
   isConnected: boolean;
-  joinOrder: number;
 }

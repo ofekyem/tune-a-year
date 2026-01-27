@@ -10,7 +10,7 @@ export const useSignalR = (roomCode: string | null) => {
 
     // create SignalR connection
     const newConnection = new signalR.HubConnectionBuilder()
-      .withUrl("http://localhost:5149/gameHub") // וודא שזה ה-Path שהגדרת ב-Program.cs
+      .withUrl("http://localhost:5149/gameHub")
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Information)
       .build();

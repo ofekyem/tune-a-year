@@ -18,6 +18,24 @@ public abstract class BaseGameService : IGameService
     {
         _context = context; 
         _songServiceFactory = songServiceFactory;
+    } 
+
+    // method to get a game session and sort players deterministically
+    protected async Task<BaseGameSession?> GetSessionWithSortedPlayersAsync(Guid sessionId)
+    {
+        var session = await _context.GameSessions
+            .Include(s => s.Players)
+            .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+        if (session != null && session.Players != null)
+        {
+            // sort players by JoinOrder
+            session.Players = session.Players
+                .OrderBy(p => p.JoinOrder)
+                .ToList();
+        }
+
+        return session;
     }
 
     // verify if the placing in the timeline is correct
@@ -48,9 +66,7 @@ public abstract class BaseGameService : IGameService
     public virtual async Task<BaseGameSession> StartGameAsync(Guid sessionId)
     {   
         // here we get the session including its players from the database
-        var session = await _context.GameSessions
-            .Include(s => s.Players)
-            .FirstOrDefaultAsync(s => s.Id == sessionId);
+        var session = await GetSessionWithSortedPlayersAsync(sessionId);
 
         if (session == null) throw new Exception("Game session not found.");
         if (session.Status != SessionStatus.Lobby) return session; // game already started
@@ -115,9 +131,7 @@ public abstract class BaseGameService : IGameService
         string? artistGuess)
     {   
         // get the session including its players from the database
-        var session = await _context.GameSessions
-            .Include(s => s.Players)
-            .FirstOrDefaultAsync(s => s.Id == sessionId);
+        var session = await GetSessionWithSortedPlayersAsync(sessionId);
 
         if (session == null || session.Status != SessionStatus.InProgress)
             throw new Exception("Game session not found or not active.");

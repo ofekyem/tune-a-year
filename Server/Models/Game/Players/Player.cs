@@ -11,6 +11,7 @@ public class Player
     public int Tokens { get; set; } = 2; // start with 2 tokens
     public List<TimelineCard> Timeline { get; set; } = new(); 
     public bool HasWon => Timeline.Count >= 10; 
-    public Guid BaseGameSessionId { get; set; }
+    public Guid BaseGameSessionId { get; set; } 
+    public int JoinOrder { get; set; }
     
 }

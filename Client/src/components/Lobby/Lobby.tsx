@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './Lobby.module.css';
 import logoLight from '../../assets/LightNo.png';
 import logoDark from '../../assets/DarkNo.png';
@@ -19,6 +20,7 @@ import {useSignalR} from '../../hooks/useSignalR';
 type LobbyStep = 'HOME' | 'MODE_SELECT' | 'SOURCE_SELECT' | 'URL_INPUT' | 'LANG_SELECT' | 'PLAYERS_COUNT' | 'CONFIG' | 'WAITING' | 'JOIN_INPUT';
 
 const Lobby: React.FC = () => {
+  const navigate = useNavigate();
   const [isDark, setIsDark] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState<LobbyStep>('HOME'); 
@@ -46,17 +48,17 @@ const Lobby: React.FC = () => {
     // listen for player list updates
     connection.on("PlayerJoined", (newPlayer: any) => {
       setPlayers(prev => {
-        if (prev.find(p => p.name === newPlayer.name)) return prev;
+        if (prev.find(p => p.id === newPlayer.id)) return prev;
         // add the new player and sort by join order
         const updatedList = [...prev, newPlayer];
-        return updatedList.sort((a, b) => (a.joinOrder ?? 0) - (b.joinOrder ?? 0));
+        return updatedList.sort((a, b) => a.joinOrder - b.joinOrder);
       });
     });
 
     // listen for game start (for players who are not the host)
     connection.on("GameStarted", (session) => {
       console.log("Game is starting!", session);
-      // here you will navigate to the game page once it's ready
+      navigate(`/game/${session.id}`);
     });
 
     // Cleanup: remove listeners when component unmounts
@@ -132,8 +134,8 @@ const Lobby: React.FC = () => {
       if (finalConfig.mode === GameMode.SingleDevice) {
         // Local mode - start the first round immediately
         console.log("Local game started! Redirecting to Board...");
+        navigate(`/game/${session.id}`);
         // Here comes the function that will take you to the game screen
-        // onGameStart(session.id); 
       } else {
         setRoomCode(session.roomCode);
         setSessionId(session.id);
@@ -163,7 +165,7 @@ const Lobby: React.FC = () => {
       
       // sort the list of players by join order
       const sortedPlayers = [...session.players].sort(
-        (a: any, b: any) => (a.joinOrder ?? 0) - (b.joinOrder ?? 0)
+        (a: any, b: any) => a.joinOrder - b.joinOrder
       );
       setPlayers(sortedPlayers);
 

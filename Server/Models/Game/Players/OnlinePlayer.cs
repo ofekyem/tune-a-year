@@ -10,6 +10,5 @@ public class OnlinePlayer : Player
     
     // Is the player currently connected? (helps to track disconnections)
     public bool IsConnected { get; set; } = true; 
-    // The order in which the player joined the game
-    public int JoinOrder { get; set; }
+    
 }

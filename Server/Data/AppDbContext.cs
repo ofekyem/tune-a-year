@@ -24,7 +24,10 @@ public class AppDbContext : DbContext
         // add an index for room code of online games
         modelBuilder.Entity<BaseGameSession>()
         .HasIndex(s => s.RoomCode)
-        .HasDatabaseName("IX_GameSessions_RoomCode");
+        .HasDatabaseName("IX_GameSessions_RoomCode"); 
+
+        modelBuilder.Entity<Player>()
+          .HasIndex(p => p.JoinOrder);
 
         // Configure MatchConfiguration to be stored as JSON
         modelBuilder.Entity<BaseGameSession>()
