@@ -9,8 +9,8 @@ body, html {
   flex-direction: column;
   height: 100vh;
   width: 100%; 
-  background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%);
-  color: #ffffff;
+  background: var(--game-bg);
+  color: var(--text-primary);
   overflow: hidden; 
   box-sizing: border-box;
 }
@@ -34,7 +34,9 @@ body, html {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  
+  background: var(--game-panel-bg);
+  border: 1px solid rgba(var(--text-primary), 0.05);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.1);
   gap: 1.2rem;
 }
 
@@ -46,11 +48,12 @@ body, html {
   border: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 1rem;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  color: var(--text-primary);
   margin-top: 5px;
 }
 
 .turnIndicator strong {
-  color: #f39c12; /* golden color for the active player's name */
+  color: var(--accent-color); /**/
 }
 
 /* Placeholder for the game table - until it's built */
@@ -96,12 +99,13 @@ body, html {
   align-items: center;
   padding: 0 24px;
   height: 70px;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--game-panel-bg);
   backdrop-filter: blur(15px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   width: 100%;
   box-sizing: border-box;
   flex-shrink: 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
 .inactivePlayersGroup {
@@ -112,8 +116,8 @@ body, html {
 }
 
 .playerMiniCard {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--game-item-bg);
+  border: 1px solid rgba(var(--text-primary), 0.1);
   border-radius: 8px;
   padding: 8px 12px;
   min-width: 140px;
@@ -182,7 +186,7 @@ body, html {
 .cardYear {
   font-size: 2.5rem;
   font-weight: 900;
-  color: #f39c12; 
+  color: var(--accent-color);
   text-align: center;
   margin-top: 10px;
 }
@@ -232,9 +236,9 @@ body, html {
 .mysteryCard {
   width: 135px;
   height: 200px;
-  background: linear-gradient(135deg, #2c3e50 0%, #000000 100%);
+  background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-main) 100%);
   border-radius: 12px;
-  border: 2px solid #f39c12;
+  border: 2px solid var(--accent-color);
   box-shadow: 0 15px 35px rgba(0,0,0,0.5), 0 0 15px rgba(243, 156, 18, 0.2);
   display: flex;
   flex-direction: column;
@@ -252,11 +256,12 @@ body, html {
 }
 
 .cardPattern {
-  color: rgba(243, 156, 18, 0.15);
+  color: var(--accent-color);
+  opacity: var(--game-pattern-opacity);
 }
 
 .playControlBtn {
-  background: #f39c12;
+  background: var(--accent-color);
   border: none;
   border-radius: 50%;
   width: 50px;
@@ -280,11 +285,11 @@ body, html {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--card-bg);
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 0.9rem;
-  color: #aaa;
+  color: var(--text-primary);
 }
 
 
@@ -299,7 +304,7 @@ body, html {
 
 .soundWaves span {
   width: 3px;
-  background: #f39c12;
+  background: var(--accent-color);
   animation: wave 1s ease-in-out infinite;
 }
 
@@ -341,22 +346,22 @@ body, html {
 .dropSlot { /* Slots between cards */
   width: 35px;
   height: 200px;
-  border: 2px dashed rgba(243, 156, 18, 0.3);
+  border: 2px dashed var(--game-slot-border);
   border-radius: 8px;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: rgba(243, 156, 18, 0.5);
+  color: var(--game-slot-border);
   font-size: 1.5rem;
   transition: all 0.2s;
   cursor: pointer;
 }
 
 .slotActive {
-  background: rgba(243, 156, 18, 0.1);
+  background: rgba(var(--accent-color), 0.1);
   border-style: solid;
   transform: scaleY(1.05);
-  color: #f39c12;
+  color: var(--accent-color);
 }
 
 .activeArea {

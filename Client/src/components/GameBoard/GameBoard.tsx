@@ -20,6 +20,15 @@ const GameBoard: React.FC = () => {
   const { connection } = useSignalR(session?.roomCode || null);
 
   useEffect(() => {
+    // save theme on reloads
+    const savedTheme = document.documentElement.getAttribute('data-theme');
+    if (savedTheme) {
+      // make sure to reapply the saved theme
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+  }, []);
+
+  useEffect(() => {
     const initGame = async () => {
       if (!sessionId) return;
 
