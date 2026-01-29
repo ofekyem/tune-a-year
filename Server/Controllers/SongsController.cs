@@ -4,6 +4,7 @@ using Server.Data;
 using Server.Models.Music;
 using Server.Services.SongServices; 
 using Server.Services.Factories;
+using Server.Services.Deezer;
 
 namespace Server.Controllers;
 
@@ -14,10 +15,12 @@ public class SongsController : ControllerBase
 {
     private readonly AppDbContext _context; 
     private readonly SongServiceFactory _serviceFactory;
-    public SongsController(AppDbContext context, SongServiceFactory serviceFactory)
+    private readonly DeezerSyncService _deezerService;
+    public SongsController(AppDbContext context, SongServiceFactory serviceFactory, DeezerSyncService deezerService)
     {
         _context = context;
         _serviceFactory = serviceFactory;
+        _deezerService = deezerService;
     } 
 
     // Get all songs from the database
@@ -66,6 +69,14 @@ public class SongsController : ControllerBase
         if (songs == null || songs.Count == 0) return NotFound("No song found matching the criteria.");
         
         return Ok(songs);
+    } 
+
+    // Endpoint to trigger Deezer ID synchronization
+    [HttpPost("sync-ids")]
+    public async Task<IActionResult> SyncIds()
+    {
+        await _deezerService.SyncDeezerIdsAsync();
+        return Ok("Deezer IDs synchronized successfully.");
     }
 
     

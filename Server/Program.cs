@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using System.Text.Json.Serialization.Metadata;
 using Server.Data; 
 using Server.Hubs;
+using Server.Services.Deezer;
 using Server.Services.SongServices;
 using Server.Services.GameServices;
 using Server.Services.Factories;
@@ -39,11 +40,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Register App Services
 builder.Services.AddScoped<LocalSongService>();
+builder.Services.AddHttpClient<LocalSongService>();
 builder.Services.AddScoped<SpotifySongService>();
 builder.Services.AddScoped<SongServiceFactory>();
 builder.Services.AddScoped<LocalGameService>();
 builder.Services.AddScoped<OnlineGameService>();
-builder.Services.AddScoped<GameServiceFactory>(); 
+builder.Services.AddScoped<GameServiceFactory>();  
+
+// Deezer Services
+builder.Services.AddHttpClient<DeezerSyncService>();
+builder.Services.AddScoped<DeezerSyncService>();
 
 // SignalR Services
 builder.Services.AddSignalR();

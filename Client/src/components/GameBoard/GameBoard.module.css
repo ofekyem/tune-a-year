@@ -595,7 +595,6 @@ body, html {
 .victoryTitle {
   font-size: 4rem;
   background: linear-gradient(45deg, #f39c12, #f1c40f);
-  -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin: 0;
 }

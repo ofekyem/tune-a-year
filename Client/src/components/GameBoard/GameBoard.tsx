@@ -225,6 +225,7 @@ const GameBoard: React.FC = () => {
           onGuessSubmit={handleGuessSubmit}
           lastResult={lastResult}
           isMyTurn={isMyTurn}
+          isResultShowing={showResultOverlay}
         />
       </main> 
 

@@ -10,9 +10,10 @@ interface Props {
   onGuessSubmit: (targetIndex: number, title: string, artist: string) => void;
   lastResult?: any;
   isMyTurn?: boolean;
+  isResultShowing: boolean;
 }
 
-const GameTable: React.FC<Props> = ({ activePlayer, currentSong, onGuessSubmit, lastResult, isMyTurn }) => {
+const GameTable: React.FC<Props> = ({ activePlayer, currentSong, onGuessSubmit, lastResult, isMyTurn, isResultShowing }) => {
   // we use this to highlight the drop slot being hovered
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null); 
   const [showModal, setShowModal] = useState(false);
@@ -100,7 +101,7 @@ const GameTable: React.FC<Props> = ({ activePlayer, currentSong, onGuessSubmit, 
 
       {/*Active song area (the mysterious card) */}
       <div className={styles.activeArea}>
-        <ActiveSongArea currentSong={currentSong} isMyTurn={isMyTurn ?? false}/>
+        <ActiveSongArea currentSong={currentSong} isMyTurn={isMyTurn ?? false} isResultShowing={isResultShowing} />
       </div> 
 
       {/* Guess modal */}

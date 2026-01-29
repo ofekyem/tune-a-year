@@ -6,6 +6,7 @@ using Server.Models.Game.Sessions;
 using Server.Models.Game.Players;
 using Server.Services.GameServices;
 using Server.Services.Factories;
+using Server.Services.SongServices;
 
 namespace Server.Controllers;
 
@@ -14,12 +15,15 @@ namespace Server.Controllers;
 public class GameController : ControllerBase
 {
     private readonly GameServiceFactory _gameFactory;
+    private readonly SongServiceFactory _serviceFactory;
     private readonly AppDbContext _context;
+    
 
     // Injecting the game service factory 
-    public GameController(GameServiceFactory gameFactory, AppDbContext context)
+    public GameController(GameServiceFactory gameFactory, SongServiceFactory serviceFactory, AppDbContext context)
     {
         _gameFactory = gameFactory;
+        _serviceFactory = serviceFactory;
         _context = context;
     }
 
@@ -144,7 +148,15 @@ public class GameController : ControllerBase
             .Include(s => s.Players)
             .FirstOrDefaultAsync(s => s.Id == id);
 
-        if (session == null) return NotFound();
+        if (session == null) return NotFound(); 
+
+        var songService = _serviceFactory.GetService(session.Config.PlaylistUrl); 
+
+        if (songService is LocalSongService localService && session.CurrentActiveSong != null)
+        {
+            // if its a local song service, ensure the preview URL is fresh
+            await localService.EnsureFreshPreviewAsync(session.CurrentActiveSong);
+        }
 
         session.Players = session.Players
             .OrderBy(p => p.JoinOrder)

@@ -6,24 +6,26 @@ import type { Song } from '../../../types/song';
 interface Props {
   currentSong: Song | null;
   isMyTurn: boolean;
+  isResultShowing: boolean;
 }
 
-const ActiveSongArea: React.FC<Props> = ({ currentSong, isMyTurn }) => {
+const ActiveSongArea: React.FC<Props> = ({ currentSong, isMyTurn, isResultShowing }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Handle audio playback when currentSong changes
   useEffect(() => {
-    if (currentSong?.previewUrl) {
-      // stop previous audio if any
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      // crate new audio object
+    // Stop any existing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+      setIsPlaying(false);
+    } 
+    // Start new audio if there's a current song and results are not showing
+    if (currentSong?.previewUrl && !isResultShowing) {
       audioRef.current = new Audio(currentSong.previewUrl);
       audioRef.current.loop = true;
       
-      // playing the audio automatically
       audioRef.current.play()
         .then(() => setIsPlaying(true))
         .catch(() => setIsPlaying(false));
@@ -34,7 +36,7 @@ const ActiveSongArea: React.FC<Props> = ({ currentSong, isMyTurn }) => {
       audioRef.current?.pause();
       audioRef.current = null;
     };
-  }, [currentSong]);
+  }, [currentSong, isResultShowing]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
