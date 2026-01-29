@@ -269,9 +269,6 @@ const GameBoard: React.FC = () => {
                 : "Master of the Musical Timeline"}
             </p> 
 
-            <h1 className={styles.victoryTitle}>{winnerData.winnerName} Wins!</h1>
-            <p className={styles.victorySubtitle}>Master of the Musical Timeline</p>
-
             <div className={styles.winnerTimelineContainer}>
               <h3>The Winning Timeline:</h3>
               <div className={styles.finalTimelineCards}>
