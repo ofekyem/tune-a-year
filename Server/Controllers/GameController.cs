@@ -96,9 +96,15 @@ public class GameController : ControllerBase
 
             var gameService = _gameFactory.GetService(session.Config.Mode);
             var (updatedSession, result) = await gameService.SubmitGuessAsync(id, playerId, targetIndex, titleGuess, artistGuess);
+            // find if there's a winner 
+            var winner = updatedSession.Players.FirstOrDefault(p => p.Timeline.Count >= updatedSession.Config.WinningScore);
             
             // return the result (success/failure message) and the updated session state
-            return Ok(new { session = updatedSession, result });
+            return Ok(new { 
+                session = updatedSession, 
+                result = result,
+                winnerName = winner?.Name 
+            });
         }
         catch (Exception ex)
         {

@@ -169,7 +169,7 @@ const Lobby: React.FC = () => {
       // save the viewing player ID to local storage
       localStorage.setItem('myPlayerId', playerId); 
       console.log("Joined successfully. My ID:", playerId); 
-      
+
       // update state with server response
       setRoomCode(session.roomCode);
       setSessionId(session.id);

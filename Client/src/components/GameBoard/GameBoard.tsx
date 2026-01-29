@@ -5,6 +5,7 @@ import { gameService } from '../../services/gameService';
 import { useSignalR } from '../../hooks/useSignalR';
 import TopBar from './parts/TopBar';
 import GameTable from './parts/GameTable';
+import TimelineCard from './parts/TimelineCard';
 import styles from './GameBoard.module.css';
 
 const GameBoard: React.FC = () => {
@@ -14,7 +15,8 @@ const GameBoard: React.FC = () => {
   const [showResultOverlay, setShowResultOverlay] = useState(false);
   const [displayPlayerIndex, setDisplayPlayerIndex] = useState<number | null>(null);
   // state for the player that is currently viewing the game
-  const [localPlayerId, setLocalPlayerId] = useState<string | null>(localStorage.getItem('myPlayerId'));
+  const [localPlayerId] = useState<string | null>(localStorage.getItem('myPlayerId')); 
+  const [winnerData, setWinnerData] = useState<{ winnerName: string, finalSession: BaseGameSession } | null>(null);
   
   
   // state for game session data
@@ -36,6 +38,7 @@ const GameBoard: React.FC = () => {
     }
   }, []);
 
+  // Initial fetch of game session data
   useEffect(() => {
     const initGame = async () => {
       if (!sessionId) return;
@@ -66,6 +69,7 @@ const GameBoard: React.FC = () => {
   useEffect(() => {
     if (!connection) return;
 
+    // listen for game updates
     connection.on("GameUpdated", (updatedSession: BaseGameSession) => {
         console.log("Received update from server!", updatedSession); 
 
@@ -77,6 +81,7 @@ const GameBoard: React.FC = () => {
       setSession(updatedSession);
     }); 
 
+    // listen for guess result event
     connection.on("GuessResultReceived", (result: any) => {
         console.log("Someone made a guess!", result);
         // the player who made the guess
@@ -86,7 +91,7 @@ const GameBoard: React.FC = () => {
           setDisplayPlayerIndex(guessingPlayerIdx); // everyone sees who made the guess
         }
         setLastResult(result);
-        setShowResultOverlay(true);
+        setShowResultOverlay(true); 
 
         // hide overlay after delay
         setTimeout(() => {
@@ -94,12 +99,52 @@ const GameBoard: React.FC = () => {
             setLastResult(null);
             setDisplayPlayerIndex(null);
         }, 4000);
+    }); 
+
+    // listen for game over event
+    connection.on("GameOver", (data: { winnerName: string, finalSession: BaseGameSession }) => {
+      console.log("GameOver received via SignalR", data);
+
+      // sort before display
+      if (data.finalSession.config.mode === 1 && data.finalSession.players) {
+        data.finalSession.players.sort((a: any, b: any) => (a.joinOrder ?? 0) - (b.joinOrder ?? 0));
+      }
+
+      setWinnerData(data);
+      setShowResultOverlay(false);
+
     });
 
     return () => {
       connection.off("GameUpdated");
+      connection.off("GuessResultReceived");
+      connection.off("GameOver");
     };
   }, [connection]); 
+
+  // for winning clenaup
+  useEffect(() => {
+    if (!winnerData || !sessionId) return;
+
+    console.log("Cleanup timer started for winner:", winnerData.winnerName);
+
+    const timer = setTimeout(async () => {
+      try {
+        // delete session from database
+        await gameService.deleteGame(sessionId); 
+        console.log("Database cleaned up successfully.");
+        
+        // navigate back to lobby
+        localStorage.removeItem('myPlayerId');
+        navigate('/'); 
+      } catch (err) {
+        console.error("Cleanup failed during navigation:", err);
+        navigate('/'); // navigate anyway
+      }
+    }, 8000); // 8 seconds delay
+
+    return () => clearTimeout(timer); // cleanup on unmount
+  }, [winnerData, sessionId, navigate]);
 
 
   // function for handle guess submit 
@@ -111,22 +156,32 @@ const GameBoard: React.FC = () => {
     
     try {
       // send guess to server
-      const response = await gameService.submitGuess(
+      const { session: updatedSession, result, winnerName } = await gameService.submitGuess(
         sessionId,
         session.players[currentIndexBeforeUpdate].id,
         targetIndex,
         title,
         artist
-      ); 
+      );
 
-      setSession(response.session); 
+      setSession(updatedSession); 
 
       // update display player index to show correct overlay
       setDisplayPlayerIndex(currentIndexBeforeUpdate);
 
       // save last result and show overlay
-      setLastResult(response.result);
-      setShowResultOverlay(true);
+      setLastResult(result);
+      setShowResultOverlay(true); 
+      
+      // if there's a winner, show victory screen
+      if (winnerName) {
+        console.log("Victory detected from API response!");
+        setWinnerData({ 
+          winnerName: winnerName, 
+          finalSession: updatedSession 
+        });
+        return; // and then exit early
+      }
       
       // delay so player can see the result after guess
       setTimeout(() => {
@@ -189,6 +244,33 @@ const GameBoard: React.FC = () => {
                 ✨ Bonus Token! You also got the details right ✨
               </div>
             )}
+          </div>
+        </div>
+      )} 
+
+      {/* the win message */}
+      {winnerData && (
+        <div className={styles.victoryOverlay}>
+          <div className={styles.victoryContent}>
+            <div className={styles.trophyIcon}>🏆</div>
+            <h1 className={styles.victoryTitle}>{winnerData.winnerName} Wins!</h1>
+            <p className={styles.victorySubtitle}>Master of the Musical Timeline</p>
+
+            <div className={styles.winnerTimelineContainer}>
+              <h3>The Winning Timeline:</h3>
+              <div className={styles.finalTimelineCards}>
+                {winnerData.finalSession.players
+                  .find(p => p.name === winnerData.winnerName)
+                  ?.timeline.map((card, i) => (
+                    <TimelineCard key={card.songId || i} card={card} />
+                  ))
+                }
+              </div>
+            </div>
+            
+            <div className={styles.cleanupTimer}>
+              Returning to lobby in a few seconds...
+            </div>
           </div>
         </div>
       )}

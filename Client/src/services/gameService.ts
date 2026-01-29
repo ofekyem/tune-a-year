@@ -45,8 +45,8 @@ export const gameService = {
       targetIndex: number, 
       titleGuess?: string, 
       artistGuess?: string
-  ): Promise<{ session: BaseGameSession, result: any }> => {
-      const response = await api.post<{ session: BaseGameSession, result: any }>(
+  ): Promise<{ session: BaseGameSession, result: any, winnerName?: string }> => {
+      const response = await api.post<{ session: BaseGameSession, result: any, winnerName?: string }>(
         `/game/${sessionId}/guess`, 
         null, // no body needed
         { 
@@ -55,4 +55,10 @@ export const gameService = {
       );
       return response.data;
     },
+
+  // delete a game session (cleanup)
+  deleteGame: async (sessionId: string) => {
+    const response = await api.delete(`/game/${sessionId}`);
+    return response.data;
+  }
 };

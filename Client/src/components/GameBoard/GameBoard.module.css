@@ -568,4 +568,62 @@ body, html {
 @keyframes rotation {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+} 
+
+/* Victory overlay styles */ 
+
+.victoryOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle, rgba(10, 10, 20, 0.98) 0%, rgba(0, 0, 0, 1) 100%);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.8s ease-out;
+}
+
+.victoryContent {
+  width: 90%;
+  max-width: 1200px;
+  text-align: center;
+}
+
+.trophyIcon { font-size: 5rem; margin-bottom: 10px; animation: bounce 2s infinite; }
+
+.victoryTitle {
+  font-size: 4rem;
+  background: linear-gradient(45deg, #f39c12, #f1c40f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
+.winnerTimelineContainer {
+  margin-top: 40px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.finalTimelineCards {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto; /* מאפשר גלילה אופקית אם יש הרבה קלפים */
+  padding: 20px 10px;
+  justify-content: flex-start;
+}
+
+.cleanupTimer {
+  margin-top: 30px;
+  font-size: 0.9rem;
+  opacity: 0.5;
+  font-style: italic;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
 }
