@@ -5,6 +5,15 @@
   --accent-color: #326cea;
   --card-bg: #ffffff;
   --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  --game-bg: radial-gradient(at 0% 0%, #a5f3fc 0%, transparent 50%), 
+             radial-gradient(at 50% 0%, #bae6fd 0%, transparent 50%), 
+             radial-gradient(at 100% 0%, #7dd3fc 0%, transparent 50%),
+             var(--bg-main);
+  --game-panel-bg: rgba(255, 255, 255, 0.4);
+  --game-slot-border: rgba(50, 108, 234, 0.5);
+  --game-pattern-opacity: 0.25;
+  --game-item-bg: rgba(255, 255, 255, 0.6);
 }
 
 [data-theme='dark'] {
@@ -12,7 +21,16 @@
   --bg-main: #060b1e; 
   --text-primary: #f8fafc;
   --accent-color: #f59e0b;
-  --card-bg: #1e293b;
+  --card-bg: #1e293b; 
+
+  --game-bg: radial-gradient(at 0% 0%, #1e293b 0%, transparent 50%), 
+             radial-gradient(at 50% 0%, #0f172a 0%, transparent 50%), 
+             radial-gradient(at 100% 0%, #020617 0%, transparent 50%),
+             var(--bg-main);
+  --game-panel-bg: rgba(255, 255, 255, 0.03);
+  --game-slot-border: rgba(245, 158, 11, 0.4);
+  --game-pattern-opacity: 0.15;
+  --game-item-bg: rgba(255, 255, 255, 0.05);
 }
 
 body, button, input, select, textarea {

@@ -6,6 +6,7 @@ using Server.Models.Game.Sessions;
 using Server.Models.Game.Players;
 using Server.Services.GameServices;
 using Server.Services.Factories;
+using Server.Services.SongServices;
 
 namespace Server.Controllers;
 
@@ -14,12 +15,15 @@ namespace Server.Controllers;
 public class GameController : ControllerBase
 {
     private readonly GameServiceFactory _gameFactory;
+    private readonly SongServiceFactory _serviceFactory;
     private readonly AppDbContext _context;
+    
 
     // Injecting the game service factory 
-    public GameController(GameServiceFactory gameFactory, AppDbContext context)
+    public GameController(GameServiceFactory gameFactory, SongServiceFactory serviceFactory, AppDbContext context)
     {
         _gameFactory = gameFactory;
+        _serviceFactory = serviceFactory;
         _context = context;
     }
 
@@ -60,8 +64,8 @@ public class GameController : ControllerBase
         {
             // here we specifically use the OnlineGameService to join by code
             var onlineService = (OnlineGameService)_gameFactory.GetService(GameMode.Online);
-            var session = await onlineService.JoinByCodeAsync(roomCode, playerName);
-            return Ok(session);
+            var (session, playerId) = await onlineService.JoinByCodeAsync(roomCode, playerName);
+            return Ok(new { session, playerId });
         }
         catch (Exception ex)
         {
@@ -96,9 +100,36 @@ public class GameController : ControllerBase
 
             var gameService = _gameFactory.GetService(session.Config.Mode);
             var (updatedSession, result) = await gameService.SubmitGuessAsync(id, playerId, targetIndex, titleGuess, artistGuess);
+
+            string? winnerName = null;
+
+            // check win by score
+            var winnerByScore = updatedSession.Players.FirstOrDefault(p => p.Timeline.Count >= updatedSession.Config.WinningScore);
+            
+            if (winnerByScore != null)
+            {
+                winnerName = winnerByScore.Name;
+            }
+            // check win by out of songs
+            else if (updatedSession.Status == SessionStatus.Finished && updatedSession.GameOverReason == "Out of songs")
+            {
+                // top player by timeline count
+                var topPlayer = updatedSession.Players
+                    .OrderByDescending(p => p.Timeline.Count)
+                    .ThenByDescending(p => p.Tokens)
+                    .FirstOrDefault();
+                
+                winnerName = topPlayer?.Name;
+            }
+            
+            
             
             // return the result (success/failure message) and the updated session state
-            return Ok(new { session = updatedSession, result });
+            return Ok(new { 
+                session = updatedSession, 
+                result = result,
+                winnerName = winnerName
+            });
         }
         catch (Exception ex)
         {
@@ -138,7 +169,15 @@ public class GameController : ControllerBase
             .Include(s => s.Players)
             .FirstOrDefaultAsync(s => s.Id == id);
 
-        if (session == null) return NotFound();
+        if (session == null) return NotFound(); 
+
+        var songService = _serviceFactory.GetService(session.Config.PlaylistUrl); 
+
+        if (songService is LocalSongService localService && session.CurrentActiveSong != null)
+        {
+            // if its a local song service, ensure the preview URL is fresh
+            await localService.EnsureFreshPreviewAsync(session.CurrentActiveSong);
+        }
 
         session.Players = session.Players
             .OrderBy(p => p.JoinOrder)

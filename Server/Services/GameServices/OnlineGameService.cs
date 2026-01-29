@@ -59,7 +59,7 @@ public class OnlineGameService : BaseGameService
     } 
 
     // player joins an existing game by room code
-    public async Task<BaseGameSession> JoinByCodeAsync(string roomCode, string playerName)
+    public async Task<(BaseGameSession session, Guid playerId)> JoinByCodeAsync(string roomCode, string playerName)
     {
         // get game session by code from the database
         var sessionData = await _context.GameSessions
@@ -105,7 +105,7 @@ public class OnlineGameService : BaseGameService
         await _hubContext.Clients.Group(roomCode.ToUpper())
             .SendAsync("PlayerJoined", player);
         
-        return fullSession!;
+        return (fullSession!, player.Id);
     } 
 
 

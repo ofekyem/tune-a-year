@@ -202,29 +202,34 @@ public abstract class BaseGameService : IGameService
             1, 
             session.Config.Languages.ToArray(), 
             session.PlayedSongIds.ToArray(), 
-            null, null);
-
-        if (nextSongs.Any())
+            null, null); 
+        
+        // if no more songs are available, end the game
+        if (!nextSongs.Any())
         {
-            var nextSong = nextSongs.First();
-            session.CurrentActiveSong = nextSong;
-            session.PlayedSongIds.Add(nextSong.Id.ToString());
-            session.PlayedSongIds = session.PlayedSongIds.ToList();
+            session.GameOverReason = "Out of songs";
+            
+            // get the winner based on the highest timeline count
+            var topPlayer = session.Players
+                .OrderByDescending(p => p.Timeline.Count)
+                .ThenByDescending(p => p.Tokens)
+                .First();
+
+            await HandleVictoryAsync(session, topPlayer);
+            return;
         }
+
+        var nextSong = nextSongs.First();
+        session.CurrentActiveSong = nextSong;
+        session.PlayedSongIds.Add(nextSong.Id.ToString());
+        session.PlayedSongIds = session.PlayedSongIds.ToList();
+        
     } 
 
     protected virtual async Task HandleVictoryAsync(BaseGameSession session, Player winner)
     {
-        // update session status to Finished
         session.Status = SessionStatus.Finished;
-        
-        // כאן אפשר להוסיף לוגיקה של שמירת המנצח (אם תוסיף שדה WinnerName ב-Session)
-        // למשל: session.WinnerName = winner.Name;
-
         await _context.SaveChangesAsync();
 
-        // הערה: את המחיקה הפיזית מהדאטה-בייס (Cleanup) מומלץ לבצע 
-        // רק לאחר שה-API החזיר את התשובה האחרונה למשתמשים.
-        // אפשר לקרוא לזה בסוף ה-SubmitGuess או במתודה נפרדת.
     }
 }

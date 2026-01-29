@@ -1,6 +1,12 @@
 import api from './api';
 import type { MatchConfiguration, BaseGameSession } from '../types';
 
+// response type for joinGame
+interface JoinResponse {
+    session: BaseGameSession;
+    playerId: string;
+} 
+
 export const gameService = {
   // create a new game session
   createGame: async (config: MatchConfiguration): Promise<BaseGameSession> => {
@@ -14,10 +20,12 @@ export const gameService = {
     return response.data;
   },
 
+
+  
   // join an existing game room (for online multiplayer)
-  joinGame: async (roomCode: string, playerName: string): Promise<BaseGameSession> => {
+  joinGame: async (roomCode: string, playerName: string): Promise<JoinResponse> => {
     // we send room code and player name as query parameters
-    const response = await api.post<BaseGameSession>('/game/join', null, { 
+    const response = await api.post<JoinResponse>('/game/join', null, { 
       params: { roomCode, playerName } 
     });
     return response.data;
@@ -37,8 +45,8 @@ export const gameService = {
       targetIndex: number, 
       titleGuess?: string, 
       artistGuess?: string
-  ): Promise<{ session: BaseGameSession, result: any }> => {
-      const response = await api.post<{ session: BaseGameSession, result: any }>(
+  ): Promise<{ session: BaseGameSession, result: any, winnerName?: string }> => {
+      const response = await api.post<{ session: BaseGameSession, result: any, winnerName?: string }>(
         `/game/${sessionId}/guess`, 
         null, // no body needed
         { 
@@ -47,4 +55,10 @@ export const gameService = {
       );
       return response.data;
     },
+
+  // delete a game session (cleanup)
+  deleteGame: async (sessionId: string) => {
+    const response = await api.delete(`/game/${sessionId}`);
+    return response.data;
+  }
 };

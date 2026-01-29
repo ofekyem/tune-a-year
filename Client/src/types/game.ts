@@ -66,7 +66,8 @@ export interface BaseGameSession {
   currentPlayerIndex: number;
   playedSongIds: string[];
   currentActiveSong: Song | null;
-  createdAt: string; // in C# DateTime ISO format
+  createdAt: string; // in C# DateTime ISO format 
+  gameOverReason?: string; // optional game over reason
 } 
 
 // ExternalPlaylistSession Type (extending BaseGameSession)

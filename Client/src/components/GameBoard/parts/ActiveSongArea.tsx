@@ -5,20 +5,27 @@ import type { Song } from '../../../types/song';
 
 interface Props {
   currentSong: Song | null;
+  isMyTurn: boolean;
+  isResultShowing: boolean;
 }
 
-const ActiveSongArea: React.FC<Props> = ({ currentSong }) => {
+const ActiveSongArea: React.FC<Props> = ({ currentSong, isMyTurn, isResultShowing }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Handle audio playback when currentSong changes
   useEffect(() => {
-    if (currentSong?.previewUrl) {
-      // crate new audio object
+    // Stop any existing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+      setIsPlaying(false);
+    } 
+    // Start new audio if there's a current song and results are not showing
+    if (currentSong?.previewUrl && !isResultShowing) {
       audioRef.current = new Audio(currentSong.previewUrl);
       audioRef.current.loop = true;
       
-      // playing the audio automatically
       audioRef.current.play()
         .then(() => setIsPlaying(true))
         .catch(() => setIsPlaying(false));
@@ -29,7 +36,7 @@ const ActiveSongArea: React.FC<Props> = ({ currentSong }) => {
       audioRef.current?.pause();
       audioRef.current = null;
     };
-  }, [currentSong]);
+  }, [currentSong, isResultShowing]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -40,6 +47,12 @@ const ActiveSongArea: React.FC<Props> = ({ currentSong }) => {
       audioRef.current.play();
     }
     setIsPlaying(!isPlaying);
+  }; 
+
+  // Drag start handler for the mystery card
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData("text/plain", "mystery_card");
+    e.dataTransfer.effectAllowed = "move";
   };
 
   if (!currentSong) return null;
@@ -48,13 +61,17 @@ const ActiveSongArea: React.FC<Props> = ({ currentSong }) => {
     <div className={styles.activeSongArea}>
       <div className={styles.mysteryCardContainer}>
         {/* The hidden card that will be dragged later */}
-        <div className={styles.mysteryCard}>
+        <div 
+          className={styles.mysteryCard}
+          draggable={isMyTurn}
+          onDragStart={isMyTurn ? handleDragStart : (e) => e.preventDefault()}
+        >
           <div className={styles.cardPattern}>
             <Music size={60} className={styles.musicIcon} />
           </div>
           
           <div className={styles.audioOverlay}>
-            <button className={styles.playControlBtn} onClick={togglePlay}>
+            <button className={styles.playControlBtn} onClick={isMyTurn ? togglePlay : undefined} style={{ cursor: isMyTurn ? 'pointer' : 'not-allowed' }}>
               {isPlaying ? <Pause fill="currentColor" size={32} /> : <Play fill="currentColor" size={32} />}
             </button>
           </div>
