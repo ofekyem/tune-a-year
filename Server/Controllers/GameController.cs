@@ -60,8 +60,8 @@ public class GameController : ControllerBase
         {
             // here we specifically use the OnlineGameService to join by code
             var onlineService = (OnlineGameService)_gameFactory.GetService(GameMode.Online);
-            var session = await onlineService.JoinByCodeAsync(roomCode, playerName);
-            return Ok(session);
+            var (session, playerId) = await onlineService.JoinByCodeAsync(roomCode, playerName);
+            return Ok(new { session, playerId });
         }
         catch (Exception ex)
         {

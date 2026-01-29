@@ -524,4 +524,48 @@ body, html {
   color: #ff4747;
   border-radius: 8px;
   cursor: pointer;
+} 
+
+.topStatusArea {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px; /* המרווח ביניהם */
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+/* Small waiting badge on the side */
+.inlineWaitingBadge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(var(--accent-color-rgb), 0.15); /* צבע אקצנט שקוף */
+  padding: 6px 16px;
+  border-radius: 50px;
+  border: 1px solid var(--accent-color);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.miniLoader {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--accent-color);
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  animation: rotation 1s linear infinite;
+}
+
+/* effect when it's not your turn */
+.readOnly {
+  opacity: 0.85;
+  filter: grayscale(0.2);
+  pointer-events: none; /* prevents accidental interaction */
+}
+
+@keyframes rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

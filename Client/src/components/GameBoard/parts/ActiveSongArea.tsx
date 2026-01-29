@@ -5,9 +5,10 @@ import type { Song } from '../../../types/song';
 
 interface Props {
   currentSong: Song | null;
+  isMyTurn: boolean;
 }
 
-const ActiveSongArea: React.FC<Props> = ({ currentSong }) => {
+const ActiveSongArea: React.FC<Props> = ({ currentSong, isMyTurn }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -60,15 +61,15 @@ const ActiveSongArea: React.FC<Props> = ({ currentSong }) => {
         {/* The hidden card that will be dragged later */}
         <div 
           className={styles.mysteryCard}
-          draggable="true" 
-          onDragStart={handleDragStart} 
+          draggable={isMyTurn}
+          onDragStart={isMyTurn ? handleDragStart : (e) => e.preventDefault()}
         >
           <div className={styles.cardPattern}>
             <Music size={60} className={styles.musicIcon} />
           </div>
           
           <div className={styles.audioOverlay}>
-            <button className={styles.playControlBtn} onClick={togglePlay}>
+            <button className={styles.playControlBtn} onClick={isMyTurn ? togglePlay : undefined} style={{ cursor: isMyTurn ? 'pointer' : 'not-allowed' }}>
               {isPlaying ? <Pause fill="currentColor" size={32} /> : <Play fill="currentColor" size={32} />}
             </button>
           </div>

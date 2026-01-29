@@ -13,14 +13,19 @@ const GameBoard: React.FC = () => {
   const [lastResult, setLastResult] = useState<any>(null);
   const [showResultOverlay, setShowResultOverlay] = useState(false);
   const [displayPlayerIndex, setDisplayPlayerIndex] = useState<number | null>(null);
+  // state for the player that is currently viewing the game
+  const [localPlayerId, setLocalPlayerId] = useState<string | null>(localStorage.getItem('myPlayerId'));
+  
   
   // state for game session data
   const [session, setSession] = useState<BaseGameSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
 
   // SignalR connection
   const { connection } = useSignalR(session?.roomCode || null);
+  
 
   useEffect(() => {
     // save theme on reloads
@@ -62,13 +67,33 @@ const GameBoard: React.FC = () => {
     if (!connection) return;
 
     connection.on("GameUpdated", (updatedSession: BaseGameSession) => {
-        console.log("Received update from server!", updatedSession);
+        console.log("Received update from server!", updatedSession); 
+
 
         // Sorting for online mode
         if (updatedSession.config.mode === 1 && updatedSession.players) {
             updatedSession.players.sort((a: any, b: any) => (a.joinOrder ?? 0) - (b.joinOrder ?? 0));
         }
       setSession(updatedSession);
+    }); 
+
+    connection.on("GuessResultReceived", (result: any) => {
+        console.log("Someone made a guess!", result);
+        // the player who made the guess
+        const guessingPlayerIdx = session?.players.findIndex(p => p.id === result.playerId); 
+
+        if (guessingPlayerIdx !== -1 && guessingPlayerIdx !== undefined) {
+          setDisplayPlayerIndex(guessingPlayerIdx); // everyone sees who made the guess
+        }
+        setLastResult(result);
+        setShowResultOverlay(true);
+
+        // hide overlay after delay
+        setTimeout(() => {
+            setShowResultOverlay(false);
+            setLastResult(null);
+            setDisplayPlayerIndex(null);
+        }, 4000);
     });
 
     return () => {
@@ -126,14 +151,16 @@ const GameBoard: React.FC = () => {
   // the active player whose turn it is
   const activePlayer = session.players[displayPlayerIndex ?? session.currentPlayerIndex];
   // players who are not the active player and show on top bar
-  const inactivePlayers = session.players.filter((_, idx) => idx !== session.currentPlayerIndex);
+  const inactivePlayers = session.players.filter((_, idx) => idx !== session.currentPlayerIndex); 
+  const isLocalMode = session?.config.mode === 0;
+  const isMyTurn = isLocalMode || (activePlayer.id === localPlayerId);
 
   return (
     <div className={styles.gameContainer}>
       <TopBar 
         players={inactivePlayers} 
         onExit={() => navigate('/')} 
-      />
+      /> 
 
       <main className={styles.playArea}>
         {/* Table of the active Player*/}
@@ -142,6 +169,7 @@ const GameBoard: React.FC = () => {
           currentSong={session.currentActiveSong}
           onGuessSubmit={handleGuessSubmit}
           lastResult={lastResult}
+          isMyTurn={isMyTurn}
         />
       </main> 
 

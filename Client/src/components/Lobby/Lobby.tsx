@@ -122,6 +122,13 @@ const Lobby: React.FC = () => {
     try {
       // create game session on server
       const session = await gameService.createGame(finalConfig);
+      
+      // save host player ID to local storage
+      if (session.players && session.players.length > 0) {
+        const host = session.players[0];
+        localStorage.setItem('myPlayerId', host.id);
+        console.log("Host ID saved:", host.id);
+      }
      
       
       // update config state with data returned from server (ID and room code)
@@ -157,7 +164,12 @@ const Lobby: React.FC = () => {
   // Join game handler
   const handleJoinGame = async (code: string, name: string) => {
     try {
-      const session = await gameService.joinGame(code, name);
+      const { session, playerId } = await gameService.joinGame(code, name); 
+
+      // save the viewing player ID to local storage
+      localStorage.setItem('myPlayerId', playerId); 
+      console.log("Joined successfully. My ID:", playerId); 
+      
       // update state with server response
       setRoomCode(session.roomCode);
       setSessionId(session.id);

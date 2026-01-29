@@ -1,6 +1,12 @@
 import api from './api';
 import type { MatchConfiguration, BaseGameSession } from '../types';
 
+// response type for joinGame
+interface JoinResponse {
+    session: BaseGameSession;
+    playerId: string;
+} 
+
 export const gameService = {
   // create a new game session
   createGame: async (config: MatchConfiguration): Promise<BaseGameSession> => {
@@ -14,10 +20,12 @@ export const gameService = {
     return response.data;
   },
 
+
+  
   // join an existing game room (for online multiplayer)
-  joinGame: async (roomCode: string, playerName: string): Promise<BaseGameSession> => {
+  joinGame: async (roomCode: string, playerName: string): Promise<JoinResponse> => {
     // we send room code and player name as query parameters
-    const response = await api.post<BaseGameSession>('/game/join', null, { 
+    const response = await api.post<JoinResponse>('/game/join', null, { 
       params: { roomCode, playerName } 
     });
     return response.data;
