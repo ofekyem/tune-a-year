@@ -17,5 +17,7 @@ public abstract class BaseGameSession
     
     // The song that is currently playing and waiting for a guess
     public Song? CurrentActiveSong { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow; 
+
+    public string? GameOverReason { get; set; }
 }

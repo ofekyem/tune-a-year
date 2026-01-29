@@ -254,6 +254,21 @@ const GameBoard: React.FC = () => {
         <div className={styles.victoryOverlay}>
           <div className={styles.victoryContent}>
             <div className={styles.trophyIcon}>🏆</div>
+
+            {/* if songs over */}
+            {winnerData.finalSession.gameOverReason === "Out of songs" && (
+              <div className={styles.outOfSongsBadge}>
+                Game ended: No more songs left in the database!
+              </div>
+            )}
+
+            <h1 className={styles.victoryTitle}>{winnerData.winnerName} Wins!</h1>
+            <p className={styles.victorySubtitle}>
+              {winnerData.finalSession.gameOverReason === "Out of songs" 
+                ? "Lead player by timeline progress" 
+                : "Master of the Musical Timeline"}
+            </p> 
+
             <h1 className={styles.victoryTitle}>{winnerData.winnerName} Wins!</h1>
             <p className={styles.victorySubtitle}>Master of the Musical Timeline</p>
 

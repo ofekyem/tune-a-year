@@ -100,14 +100,35 @@ public class GameController : ControllerBase
 
             var gameService = _gameFactory.GetService(session.Config.Mode);
             var (updatedSession, result) = await gameService.SubmitGuessAsync(id, playerId, targetIndex, titleGuess, artistGuess);
-            // find if there's a winner 
-            var winner = updatedSession.Players.FirstOrDefault(p => p.Timeline.Count >= updatedSession.Config.WinningScore);
+
+            string? winnerName = null;
+
+            // check win by score
+            var winnerByScore = updatedSession.Players.FirstOrDefault(p => p.Timeline.Count >= updatedSession.Config.WinningScore);
+            
+            if (winnerByScore != null)
+            {
+                winnerName = winnerByScore.Name;
+            }
+            // check win by out of songs
+            else if (updatedSession.Status == SessionStatus.Finished && updatedSession.GameOverReason == "Out of songs")
+            {
+                // top player by timeline count
+                var topPlayer = updatedSession.Players
+                    .OrderByDescending(p => p.Timeline.Count)
+                    .ThenByDescending(p => p.Tokens)
+                    .FirstOrDefault();
+                
+                winnerName = topPlayer?.Name;
+            }
+            
+            
             
             // return the result (success/failure message) and the updated session state
             return Ok(new { 
                 session = updatedSession, 
                 result = result,
-                winnerName = winner?.Name 
+                winnerName = winnerName
             });
         }
         catch (Exception ex)
