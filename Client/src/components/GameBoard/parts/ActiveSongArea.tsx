@@ -14,6 +14,10 @@ const ActiveSongArea: React.FC<Props> = ({ currentSong }) => {
   // Handle audio playback when currentSong changes
   useEffect(() => {
     if (currentSong?.previewUrl) {
+      // stop previous audio if any
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
       // crate new audio object
       audioRef.current = new Audio(currentSong.previewUrl);
       audioRef.current.loop = true;
@@ -40,6 +44,12 @@ const ActiveSongArea: React.FC<Props> = ({ currentSong }) => {
       audioRef.current.play();
     }
     setIsPlaying(!isPlaying);
+  }; 
+
+  // Drag start handler for the mystery card
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData("text/plain", "mystery_card");
+    e.dataTransfer.effectAllowed = "move";
   };
 
   if (!currentSong) return null;
@@ -48,7 +58,11 @@ const ActiveSongArea: React.FC<Props> = ({ currentSong }) => {
     <div className={styles.activeSongArea}>
       <div className={styles.mysteryCardContainer}>
         {/* The hidden card that will be dragged later */}
-        <div className={styles.mysteryCard}>
+        <div 
+          className={styles.mysteryCard}
+          draggable="true" 
+          onDragStart={handleDragStart} 
+        >
           <div className={styles.cardPattern}>
             <Music size={60} className={styles.musicIcon} />
           </div>
