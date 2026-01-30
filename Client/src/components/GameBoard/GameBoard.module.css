@@ -15,8 +15,8 @@ body, html {
   box-sizing: border-box;
 }
 
-/* play area under the TopBar */
-.playArea {
+
+.playArea { /* play area under the TopBar */
   flex: 1; /* takes up all remaining space */
   display: flex;
   flex-direction: column;
@@ -26,8 +26,8 @@ body, html {
   overflow: hidden;
 }
 
-/* center of the table where the guesses happen */
-.tableCenter {
+
+.tableCenter { /* center of the table where the guesses happen */
   width: 100%;
   max-width: 1400px;
   display: flex;
@@ -40,8 +40,8 @@ body, html {
   gap: 1.2rem;
 }
 
-/* current turn indicator */
-.turnIndicator {
+
+.turnIndicator { /* current turn indicator */
   background: rgba(255, 255, 255, 0.05);
   padding: 8px 20px;
   border-radius: 50px;
@@ -53,11 +53,10 @@ body, html {
 }
 
 .turnIndicator strong {
-  color: var(--accent-color); /**/
+  color: var(--accent-color); 
 }
 
-/* Placeholder for the game table - until it's built */
-.placeholderTable {
+.placeholderTable { /* Placeholder for the game table - until it's built */
   width: 100%;
   min-height: 200px;
   border: 2px dashed rgba(255, 255, 255, 0.1);
@@ -68,13 +67,13 @@ body, html {
   color: rgba(255, 255, 255, 0.4);
 }
 
-/* active song area at bottom/center */
-.activeSongSection {
+
+.activeSongSection { /* active song area at bottom/center */
   text-align: center;
   animation: fadeIn 0.5s ease-in-out;
 }
 
-/* loading data*/
+
 .loader {
   height: 100vh;
   display: flex;
@@ -84,14 +83,12 @@ body, html {
   background: #0f0f1a;
 }
 
-/* animation for fadeIn */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 } 
 
-/* Blurred background layer */
-.resultOverlay {
+.resultOverlay { /* Blurred background layer */
   position: fixed;
   top: 0;
   left: 0;
@@ -105,12 +102,10 @@ body, html {
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Colors change based on result type */
 .resultOverlay.correct { background: rgba(46, 204, 113, 0.2); }
 .resultOverlay.wrong { background: rgba(231, 76, 60, 0.2); }
 
-/* Central result box */
-.resultContent {
+.resultContent { /* Central result box */
   background: var(--card-bg);
   padding: 40px;
   border-radius: 30px;
@@ -131,8 +126,8 @@ body, html {
   margin-bottom: 20px;
 }
 
-/* Details of the revealed song */
-.resultSongInfo {
+
+.resultSongInfo { /* Details of the revealed song */
   margin: 25px 0;
   padding: 20px;
   background: rgba(var(--text-primary), 0.05);
@@ -162,8 +157,8 @@ body, html {
   animation: coinShine 2s infinite, float 3s ease-in-out infinite;
 }
 
-/* Animation for "coin fly" */
-@keyframes coinFly {
+
+@keyframes coinFly { /* Animation for "coin fly" */
   0% { transform: scale(1) translateY(0); opacity: 1; }
   100% { transform: scale(0.5) translateY(-300px); opacity: 0; }
 }
@@ -305,8 +300,8 @@ body, html {
   text-overflow: ellipsis;
 }
 
-/* animation for popIn */
-.animatePop {
+
+.animatePop { /* animation for popIn */
   animation: popIn 0.5s ease-out forwards;
 }
 
@@ -406,7 +401,7 @@ body, html {
   50% { height: 20px; }
 }
 
-/* Different wave timings for each "column" */
+      /* Different wave timings for each "column" */
 .soundWaves span:nth-child(2) { animation-delay: 0.2s; }
 .soundWaves span:nth-child(3) { animation-delay: 0.4s; }
 .soundWaves span:nth-child(4) { animation-delay: 0.6s; } 
@@ -530,17 +525,17 @@ body, html {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 15px; /* המרווח ביניהם */
+  gap: 15px; 
   width: 100%;
   margin-bottom: 10px;
 }
 
-/* Small waiting badge on the side */
-.inlineWaitingBadge {
+
+.inlineWaitingBadge { /* Small waiting badge on the side */
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(var(--accent-color-rgb), 0.15); /* צבע אקצנט שקוף */
+  background: rgba(var(--accent-color-rgb), 0.15); 
   padding: 6px 16px;
   border-radius: 50px;
   border: 1px solid var(--accent-color);
@@ -558,8 +553,8 @@ body, html {
   animation: rotation 1s linear infinite;
 }
 
-/* effect when it's not your turn */
-.readOnly {
+
+.readOnly { /* effect when it's not your turn */
   opacity: 0.85;
   filter: grayscale(0.2);
   pointer-events: none; /* prevents accidental interaction */
@@ -611,7 +606,7 @@ body, html {
 .finalTimelineCards {
   display: flex;
   gap: 15px;
-  overflow-x: auto; /* מאפשר גלילה אופקית אם יש הרבה קלפים */
+  overflow-x: auto; /* scroll if needed */
   padding: 20px 10px;
   justify-content: flex-start;
 }
