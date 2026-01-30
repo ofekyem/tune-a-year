@@ -28,7 +28,6 @@ api.interceptors.response.use(
           break;
         case 404:
           console.error('Not Found:', 'The requested resource was not found');
-          // You can add automatic navigation to the lobby here if the game is not found
           break;
         case 500:
           console.error('Server Error:', 'Something went wrong on the server');
