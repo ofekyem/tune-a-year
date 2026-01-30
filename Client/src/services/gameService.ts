@@ -48,7 +48,7 @@ export const gameService = {
   ): Promise<{ session: BaseGameSession, result: any, winnerName?: string }> => {
       const response = await api.post<{ session: BaseGameSession, result: any, winnerName?: string }>(
         `/game/${sessionId}/guess`, 
-        null, // no body needed
+        null, 
         { 
           params: { playerId, targetIndex, titleGuess, artistGuess } 
         }
