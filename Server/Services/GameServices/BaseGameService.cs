@@ -48,7 +48,8 @@ public abstract class BaseGameService : IGameService
 
     // common initialization logic for game sessions
     protected BaseGameSession InitializeSession(MatchConfiguration config)
-    {
+    {   
+        // decide which subclass of BaseGameSession to create
         BaseGameSession session = config.Source == MusicSource.LocalDatabase 
             ? new LocalDatabaseSession() 
             : new ExternalPlaylistSession();
@@ -177,7 +178,7 @@ public abstract class BaseGameService : IGameService
             }
         }
 
-        // 3. manage turns and move to the next song
+        // manage turns and move to the next song
         session.CurrentPlayerIndex = (session.CurrentPlayerIndex + 1) % session.Players.Count;
         await PrepareNextActiveSong(session);
 

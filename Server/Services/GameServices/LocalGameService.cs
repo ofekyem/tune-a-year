@@ -14,7 +14,6 @@ public class LocalGameService : BaseGameService
 
     public override async Task<BaseGameSession> CreateGameAsync(MatchConfiguration config)
     {   
-       
 
         if (config.LocalPlayerNames == null || config.LocalPlayerNames.Count < 2)
         {
