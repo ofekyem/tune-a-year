@@ -136,15 +136,15 @@ public class OnlineGameService : BaseGameService
             .Select(s => s[Random.Shared.Next(s.Length)]).ToArray());
     } 
 
-    public override async Task<(BaseGameSession session, GuessResult result)> SubmitGuessAsync(
+    public override async Task<(BaseGameSession session, GuessResult result, string? winnerName)> SubmitGuessAsync(
         Guid sessionId, 
         Guid playerId, 
         int targetIndex, 
         string? titleGuess, 
         string? artistGuess)
     {
-        // call the base method to process the guess
-        var (session, result) = await base.SubmitGuessAsync(sessionId, playerId, targetIndex, titleGuess, artistGuess);
+        // call the base method to process the guess and get the updated session, the result of the guess and the winner name if there is one.
+        var (session, result, winnerName) = await base.SubmitGuessAsync(sessionId, playerId, targetIndex, titleGuess, artistGuess);
 
         // broadcast the results to all clients in the room
         await _hubContext.Clients.Group(session.RoomCode!)
@@ -154,7 +154,7 @@ public class OnlineGameService : BaseGameService
         await _hubContext.Clients.Group(session.RoomCode!)
             .SendAsync("GameUpdated", session);
 
-        return (session, result);
+        return (session, result, winnerName);
     } 
 
     protected override async Task HandleVictoryAsync(BaseGameSession session, Player winner)

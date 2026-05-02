@@ -124,7 +124,7 @@ public abstract class BaseGameService : IGameService
 
     
     // method that processes a player's guess submission
-    public virtual async Task<(BaseGameSession session, GuessResult result)> SubmitGuessAsync(
+    public virtual async Task<(BaseGameSession session, GuessResult result, string? winnerName)> SubmitGuessAsync(
         Guid sessionId, 
         Guid playerId, 
         int targetIndex, 
@@ -178,21 +178,30 @@ public abstract class BaseGameService : IGameService
             }
         }
 
+        string? winnerName = null;
         // check if the player has won after this guess
-        bool hasWon = await CheckForAWinner(session);
-        // if not,prepare the next turn and move turn to the next player.
-        if (!hasWon)
-        { 
-            await PrepareNextActiveSong(session);
-            session.CurrentPlayerIndex = (session.CurrentPlayerIndex + 1) % session.Players.Count;
+        bool hasWon = await CheckForAWinner(session); 
+        if (hasWon)
+        {
+            winnerName = currentPlayer.Name;
         }
-
+        else
+        {
+            // Prepare the next song and capture the winnerName if it triggers "Out of songs" case
+            winnerName = await PrepareNextActiveSong(session);
+            // If there's still no winner, we move to the next player in the turn order.
+            if (winnerName == null)
+            {
+                session.CurrentPlayerIndex = (session.CurrentPlayerIndex + 1) % session.Players.Count;
+            }
+        }
+        
         await _context.SaveChangesAsync();
-        return (session, result);
+        return (session, result, winnerName);
     }
 
     // Method to prepare the next active song for the session
-    protected async Task PrepareNextActiveSong(BaseGameSession session)
+    protected async Task<string?> PrepareNextActiveSong(BaseGameSession session)
     {   
         var songService = _songServiceFactory.GetService(session.Config.PlaylistUrl);
         // Draw one new song that hasn't appeared yet
@@ -205,8 +214,7 @@ public abstract class BaseGameService : IGameService
         // If no more songs are available, we must determine the winner by points.
         if (!nextSongs.Any())
         {
-            await HandleOutOfSongsAsync(session);
-            return;
+            return await HandleOutOfSongsAsync(session);
         }
 
         // Set the new song as the current active one
@@ -216,6 +224,8 @@ public abstract class BaseGameService : IGameService
         // Track played songs to avoid repeats
         session.PlayedSongIds.Add(nextSong.Id.ToString());
         session.PlayedSongIds = session.PlayedSongIds.ToList(); // Update for EF Core tracking
+
+        return null; // Game continues
     } 
 
     // function to check if the last player won after last guess.
@@ -240,7 +250,7 @@ public abstract class BaseGameService : IGameService
     } 
 
     // Handles the end of the game when no more songs are available in the pool
-    protected async Task HandleOutOfSongsAsync(BaseGameSession session)
+    protected async Task<string> HandleOutOfSongsAsync(BaseGameSession session)
     {
         session.GameOverReason = "Out of songs";
         
@@ -250,7 +260,8 @@ public abstract class BaseGameService : IGameService
             .ThenByDescending(p => p.Tokens)
             .First();
 
-        // Trigger the victory logic for the top player
+        // Trigger the victory logic for the top player and return the winner's name.
         await HandleVictoryAsync(session, topPlayer);
+        return topPlayer.Name;
     }
 }
