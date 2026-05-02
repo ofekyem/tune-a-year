@@ -27,7 +27,8 @@ public class OnlineGameService : BaseGameService
             throw new Exception("CreatorName is required for online games.");
         }
         var session = InitializeSession(config);
-        // logic of unique RoomCode
+
+        // Generate a unique room code and ensure it's not already taken by an active session.
         string code;
         bool isCodeTaken;
         do
@@ -51,14 +52,15 @@ public class OnlineGameService : BaseGameService
             JoinOrder = 0
         };
 
+        // Add the game session and host player to the database context, then save to generate IDs.
         _context.GameSessions.Add(session);
         _context.Players.Add(hostPlayer);
-
         await _context.SaveChangesAsync();
+
         return session;
     } 
 
-    // player joins an existing game by room code
+    // function for a player to join an existing online game by room code
     public async Task<(BaseGameSession session, Guid playerId)> JoinByCodeAsync(string roomCode, string playerName)
     {
         // get game session by code from the database
@@ -80,6 +82,7 @@ public class OnlineGameService : BaseGameService
         // check if there is space
         if (sessionData.CurrentPlayerCount >= sessionData.MaxPlayers)
             throw new Exception("the room is full.");
+        
         // create the new player for the session
         var player = new OnlinePlayer
         {
@@ -92,9 +95,14 @@ public class OnlineGameService : BaseGameService
             JoinOrder = sessionData.CurrentPlayerCount
         };
 
+        // save the joined player to the database to generate the player ID.
         _context.Players.Add(player);
         await _context.SaveChangesAsync(); 
 
+        // We must fetch the full session fresh from the database for two reasons:
+        // 1. The initial query used AsNoTracking() and an anonymous type (select) for performance.
+        // 2. We just added a new player, so we need Eager Loading (.Include) to get the updated Players list.
+        // This ensures the SignalR broadcast sends the complete and accurate lobby state to all clients.
         var fullSession = await _context.GameSessions
             .Include(s => s.Players)
             .FirstOrDefaultAsync(s => s.Id == sessionData.Id);
@@ -113,7 +121,6 @@ public class OnlineGameService : BaseGameService
     {
         var session = await base.StartGameAsync(sessionId);
 
-        
         // notify all clients in the room that the game has started and send the updated state (including the first song)
         await _hubContext.Clients.Group(session.RoomCode!)
             .SendAsync("GameStarted", session);
@@ -138,7 +145,6 @@ public class OnlineGameService : BaseGameService
     {
         // call the base method to process the guess
         var (session, result) = await base.SubmitGuessAsync(sessionId, playerId, targetIndex, titleGuess, artistGuess);
-
 
         // broadcast the results to all clients in the room
         await _hubContext.Clients.Group(session.RoomCode!)
