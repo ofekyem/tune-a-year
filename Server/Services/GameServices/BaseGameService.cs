@@ -178,59 +178,79 @@ public abstract class BaseGameService : IGameService
             }
         }
 
-        // manage turns and move to the next song
-        session.CurrentPlayerIndex = (session.CurrentPlayerIndex + 1) % session.Players.Count;
-        await PrepareNextActiveSong(session);
+        // check if the player has won after this guess
+        bool hasWon = await CheckForAWinner(session);
+        // if not,prepare the next turn and move turn to the next player.
+        if (!hasWon)
+        { 
+            await PrepareNextActiveSong(session);
+            session.CurrentPlayerIndex = (session.CurrentPlayerIndex + 1) % session.Players.Count;
+        }
 
         await _context.SaveChangesAsync();
         return (session, result);
     }
 
-    // method to prepare the next active song for the session
+    // Method to prepare the next active song for the session
     protected async Task PrepareNextActiveSong(BaseGameSession session)
     {   
-        // check for victory condition before drawing a new song
-        var winner = session.Players.FirstOrDefault(p => p.Timeline.Count >= session.Config!.WinningScore);
-        if (winner != null)
-        {
-            await HandleVictoryAsync(session, winner);
-            return; // stop here - do not draw a new song
-        }
         var songService = _songServiceFactory.GetService(session.Config.PlaylistUrl);
-        
-        // draw one new song that hasn't appeared yet
+        // Draw one new song that hasn't appeared yet
         var nextSongs = await songService.GetRandomSongsAsync(
             1, 
             session.Config.Languages.ToArray(), 
             session.PlayedSongIds.ToArray(), 
             null, null); 
         
-        // if no more songs are available, end the game
+        // If no more songs are available, we must determine the winner by points.
         if (!nextSongs.Any())
         {
-            session.GameOverReason = "Out of songs";
-            
-            // get the winner based on the highest timeline count
-            var topPlayer = session.Players
-                .OrderByDescending(p => p.Timeline.Count)
-                .ThenByDescending(p => p.Tokens)
-                .First();
-
-            await HandleVictoryAsync(session, topPlayer);
+            await HandleOutOfSongsAsync(session);
             return;
         }
 
+        // Set the new song as the current active one
         var nextSong = nextSongs.First();
         session.CurrentActiveSong = nextSong;
-        session.PlayedSongIds.Add(nextSong.Id.ToString());
-        session.PlayedSongIds = session.PlayedSongIds.ToList();
         
+        // Track played songs to avoid repeats
+        session.PlayedSongIds.Add(nextSong.Id.ToString());
+        session.PlayedSongIds = session.PlayedSongIds.ToList(); // Update for EF Core tracking
     } 
+
+    // function to check if the last player won after last guess.
+    protected async Task<bool> CheckForAWinner(BaseGameSession session)
+    {
+        // if the current player has reached the winning score, we finish the game.
+        var currentPlayer = session.Players[session.CurrentPlayerIndex];
+        if (currentPlayer.Timeline.Count >= session.Config!.WinningScore)
+        {
+            await HandleVictoryAsync(session, currentPlayer);
+            return true;
+        }
+        
+        return false;
+    }
 
     protected virtual async Task HandleVictoryAsync(BaseGameSession session, Player winner)
     {
         session.Status = SessionStatus.Finished;
         await _context.SaveChangesAsync();
 
+    } 
+
+    // Handles the end of the game when no more songs are available in the pool
+    protected async Task HandleOutOfSongsAsync(BaseGameSession session)
+    {
+        session.GameOverReason = "Out of songs";
+        
+        // We iterate here to compare all players and find the global winner
+        var topPlayer = session.Players
+            .OrderByDescending(p => p.Timeline.Count)
+            .ThenByDescending(p => p.Tokens)
+            .First();
+
+        // Trigger the victory logic for the top player
+        await HandleVictoryAsync(session, topPlayer);
     }
 }
