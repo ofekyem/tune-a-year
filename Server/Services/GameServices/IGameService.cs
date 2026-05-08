@@ -11,7 +11,7 @@ public interface IGameService
 
     Task<BaseGameSession> StartGameAsync(Guid sessionId);
     
-    Task<(BaseGameSession session, GuessResult result)> SubmitGuessAsync(
+    Task<(BaseGameSession session, GuessResult result, string? winnerName)> SubmitGuessAsync(
         Guid sessionId, 
         Guid playerId, 
         int targetIndex, 

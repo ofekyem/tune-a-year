@@ -20,7 +20,7 @@ export type MusicSource = typeof MusicSource[keyof typeof MusicSource];
 export const LanguageOption = {
   Hebrew: 0,
   English: 1,
-  Both: 2,
+  All: 2,
 } as const;
 export type LanguageOption = typeof LanguageOption[keyof typeof LanguageOption];
 

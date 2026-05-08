@@ -2,5 +2,5 @@ namespace Server.Models.Game.Sessions;
 
 public class LocalDatabaseSession : BaseGameSession
 {
-    // Uses all the properties of BaseGameSession without additions
+    // Used for a game that uses songs from the game's database.
 }

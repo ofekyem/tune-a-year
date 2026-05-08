@@ -97,33 +97,11 @@ public class GameController : ControllerBase
             // get the session to determine which service to use
             var session = await _context.GameSessions.FindAsync(id);
             if (session == null) return NotFound(new { message = "Session not found" });
-
             var gameService = _gameFactory.GetService(session.Config.Mode);
-            var (updatedSession, result) = await gameService.SubmitGuessAsync(id, playerId, targetIndex, titleGuess, artistGuess);
 
-            string? winnerName = null;
+            // submit a guess and get the updatesd session, the result of the guess and the winner name if there is one.
+            var (updatedSession, result, winnerName) = await gameService.SubmitGuessAsync(id, playerId, targetIndex, titleGuess, artistGuess);
 
-            // check win by score
-            var winnerByScore = updatedSession.Players.FirstOrDefault(p => p.Timeline.Count >= updatedSession.Config.WinningScore);
-            
-            if (winnerByScore != null)
-            {
-                winnerName = winnerByScore.Name;
-            }
-            // check win by out of songs
-            else if (updatedSession.Status == SessionStatus.Finished && updatedSession.GameOverReason == "Out of songs")
-            {
-                // top player by timeline count
-                var topPlayer = updatedSession.Players
-                    .OrderByDescending(p => p.Timeline.Count)
-                    .ThenByDescending(p => p.Tokens)
-                    .FirstOrDefault();
-                
-                winnerName = topPlayer?.Name;
-            }
-            
-            
-            
             // return the result (success/failure message) and the updated session state
             return Ok(new { 
                 session = updatedSession, 

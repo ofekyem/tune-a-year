@@ -60,7 +60,9 @@ public class SongsController : ControllerBase
         [FromQuery] int? minYear = null,
         [FromQuery] int? maxYear = null)
     {
-        // get the appropriate song service based on the presence of playlistId
+        // get the appropriate song service based on the presence of playlistId:
+        // if has playlistId - use songs from that playlist for the fame (currently no available).
+        // if no playlistId - use songs from the database of the game
         var selectedService = _serviceFactory.GetService(playlistId);
 
         // fetch random songs using the selected service
