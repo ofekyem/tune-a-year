@@ -33,7 +33,7 @@ public class LocalSongService : ISongService
                 }
             }
         } catch (Exception ex) {
-            Console.WriteLine($"[LocalSongService] Refresh failed: {ex.Message}");
+            Console.WriteLine($"Call for deezer in EnsureFreshPreviewAsync failed: {ex.Message}");
         }
     }
 

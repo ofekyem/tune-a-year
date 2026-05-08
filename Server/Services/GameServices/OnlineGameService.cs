@@ -116,7 +116,7 @@ public class OnlineGameService : BaseGameService
         return (fullSession!, player.Id);
     } 
 
-
+    // Start Online Game: start like a base game + notify all listeners that the game started.
     public override async Task<BaseGameSession> StartGameAsync(Guid sessionId)
     {
         var session = await base.StartGameAsync(sessionId);
@@ -128,7 +128,7 @@ public class OnlineGameService : BaseGameService
         return session;
     }
 
-    // private function to generate the room code
+    // Generate a new room code
     private string GenerateRoomCode()
     {
         const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; 

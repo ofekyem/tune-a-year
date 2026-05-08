@@ -38,7 +38,7 @@ public abstract class BaseGameService : IGameService
         return session;
     }
 
-    // verify if the placing in the timeline is correct
+    // Verify if the placing in the timeline is correct
     public bool VerifyPlacement(List<TimelineCard> timeline, int newYear, int index)
     {
         if (index > 0 && timeline[index - 1].ReleaseYear > newYear) return false;
@@ -75,18 +75,21 @@ public abstract class BaseGameService : IGameService
         // if there is no playlist url then its a local database songs service
         var songService = _songServiceFactory.GetService(session.Config.PlaylistUrl);
 
-        // Fetch "anchor" cards for everyone 
+        // Fetch anchor cards for everyone + the first active song in one call
+        int totalSongsNeeded = session.Players.Count + 1;
+
+        // Fetch "anchor" cards for everyone + one for active song.
         // we fetch for each player one random card 
         // there is an option to include 2 more arguments for minYear nad maxYear for filtering by year range (currently not used)
-        var anchorSongs = await songService.GetRandomSongsAsync(
-            session.Players.Count, 
+        var allSongs = await songService.GetRandomSongsAsync(
+            totalSongsNeeded, 
             session.Config.Languages.ToArray(), 
             null, null, null);
 
         // each player gets one anchor card added to their timeline
         for (int i = 0; i < session.Players.Count; i++)
         {
-            var song = anchorSongs[i];
+            var song = allSongs[i];
             session.Players[i].Timeline.Add(new TimelineCard
             {
                 SongId = song.Id,
@@ -99,20 +102,12 @@ public abstract class BaseGameService : IGameService
             session.PlayedSongIds.Add(song.Id.ToString());
         } 
 
-        // for the erf to recognize change in the played song ids list
-        session.PlayedSongIds = session.PlayedSongIds.ToList();
-
-        // we get a first active song for the game
-        var pool = await songService.GetRandomSongsAsync(
-            1, 
-            session.Config.Languages.ToArray(), 
-            session.PlayedSongIds.ToArray(), null, null);
-
-        // setting the first active song
-        session.CurrentActiveSong = pool.First();
+        // The last song in the batch becomes the first active song
+        var activeSong = allSongs.Last();
+        session.CurrentActiveSong = activeSong;
         session.PlayedSongIds.Add(session.CurrentActiveSong.Id.ToString());
 
-        // update again for the erf after adding the active song
+        // for the erf to recognize changes in the played song ids list
         session.PlayedSongIds = session.PlayedSongIds.ToList(); 
         
         // updating status and saving
